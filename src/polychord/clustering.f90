@@ -245,7 +245,7 @@ module kmeans_clustering
     implicit none
     contains
     
-    >! Computes the squared distance matrix for two arrays of vectors. 
+    !> Computes the squared distance matrix for two arrays of vectors. 
     !! a and b must have common second dimension (the dimension of the space)
     function distance_matrix(a, b) result (d)
        
@@ -257,10 +257,59 @@ module kmeans_clustering
 
         do ii = 1, size(b, 1)
             do i = 1, size(a, 1)
-                difference = a[i] - b[ii]
-                d[i, ii] = dot_product(difference, difference)
+                difference = a(i) - b(ii)
+                d(i, ii) = dot_product(difference, difference)
             end do
         end do 
+    end function
+    
+    !> sample from (1, ..., size(weights)), weighted by weights
+    function sample_by_weights(weights) return (sample)
+        real(dp), intend(in), dimension(:) :: weights
+        real(dp) :: weight_sum = sum(weights)
+        real(dp) :: sample
+        integer sample
+        real(dp) :: p = rand()
+        do sample = 1, size(values)
+            if (p <= sum(weights(1:sample))) exit
+        end do
+    end function
+
+    !> create intial means using kmeans++ algorithm
+    function kmeanspp(positions, k) result (means)
+
+        real(dp), intent(in), dimension (:,:) :: positions
+        integer, intent(in) :: k
+        real(dp), dimension(k, size(positions, 2)) :: means
+        integer :: n = size(positions, 1)
+        real(dp), dimension(n) :: weights
+        integer :: i, ii, new_idx
+        real(dp) :: new_weight
+        logical, dimension(n) :: unused = .true.
+        !! if unused, set weight to 0
+
+        !! pcik first mean at random
+        i = floor(rand() * n + 1) 
+        means(1) = positions(i)
+        unused(i) = .false.
+
+        do ii = 2, k
+            do i = 1, n    
+                if (unused(i)) then
+                    !! calculate distance to most recently added mean, replace
+                    !! if closer
+                    new_weight = norm2(positions(i) - means(ii-1))
+                    if (new_weight < weights(i)) weights(i) = new_weight
+                else
+                    weights(i) = 0
+                end if
+            end do
+            new_idx = sample_by_weights(weights)
+            means(ii) = positions(new_idx)
+            unused(new_idx) = .false.
+        end do
+
+        
     end function
 
     function kmeans_clustering(positions, k) result (cluster_list) 
@@ -279,18 +328,18 @@ module kmeans_clustering
 
         !! use kmeans!! to seed
         !! assignment step
-        do while(not finished)
+        do while(.not. finished)
             distances = distance_matrix(means, positions)
             do ii = 1, n
                 i_closest = 1
                 do i = 2, k
                     ! reassign responsibility if distance is closer or,
                     ! if distances are the same, assign to the smaller cluster
-                    if (distances[i, ii] < distances[i_closest, ii] &
-                        .or. distances[i, ii] == distances[i_closest, ii] &
-                        .and. sum(responsibilities[i]) > sum(responsibilities[i_closest])) then
-                        responsibility[i_closest, ii] = 0
-                        responsibility[i, ii] = 1
+                    if (distances(i, ii) < distances(i_closest, ii) &
+                        .or. distances(i, ii) == distances(i_closest, ii) &
+                        .and. sum(responsibilities(i)) > sum(responsibilities(i_closest))) then
+                        responsibility(i_closest, ii) = 0
+                        responsibility(i, ii) = 1
                         i_closest = i
                     end if 
                 end do
@@ -299,15 +348,16 @@ module kmeans_clustering
             !! calculate new means and check if any have changed
             do i = i, k
                 finished = .true.
-                R = sum(responsibilities[i])
+                R = sum(responsibilities(i))
                 if (R > 0) then
-                    old_mean = means[i]
-                    means[i] = dot(responbilities[i], positions) / R
+                    old_mean = means(i)
+                    means(i) = dot(responbilities(i), positions) / R
 
                     ! if any mean is changed, clustering is not finished
-                    if (old_mean /= means[i]) then
-                        finished = .false.
-    
+                    if (old_mean /= means(i)) finished = .false.
+                end if
+            end do
+        end
 
 
 end module kmeans_clustering
