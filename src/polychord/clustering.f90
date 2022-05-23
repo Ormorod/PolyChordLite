@@ -249,28 +249,28 @@ module kmeans_clustering
     !! a and b must have common second dimension (the dimension of the space)
     function distance_matrix(a, b) result (d)
        
-        real(dp), intent(in), dimension(:,:) :: a
-        real(dp), intent(in), dimension(:, size(a, 2)) :: b
+        real(dp), intent(in), dimension(:,:) :: a, b
         real(dp), dimension(size(a, 1), size(b, 1)) :: d
         real(dp), dimension(size(a, 2)) :: difference
         integer :: i, ii
 
         do ii = 1, size(b, 1)
             do i = 1, size(a, 1)
-                difference = a(i) - b(ii)
+                difference = a(i, :) - b(ii, :)
                 d(i, ii) = dot_product(difference, difference)
             end do
         end do 
     end function
     
     !> sample from (1, ..., size(weights)), weighted by weights
-    function sample_by_weights(weights) return (sample)
-        real(dp), intend(in), dimension(:) :: weights
-        real(dp) :: weight_sum = sum(weights)
-        real(dp) :: sample
+    function sample_by_weights(weights) result (sample)
+        real(dp), intent(in), dimension(:) :: weights
+        real(dp) :: weight_sum
         integer sample
-        real(dp) :: p = rand()
-        do sample = 1, size(values)
+        real(dp) :: p
+        call random_number(p)
+        weight_sum = sum(weights)
+        do sample = 1, size(weights)
             if (p <= sum(weights(1:sample))) exit
         end do
     end function
@@ -281,65 +281,70 @@ module kmeans_clustering
         real(dp), intent(in), dimension (:,:) :: positions
         integer, intent(in) :: k
         real(dp), dimension(k, size(positions, 2)) :: means
-        integer :: n = size(positions, 1)
-        real(dp), dimension(n) :: weights
+        real(dp), dimension(size(positions, 1)) :: weights
         integer :: i, ii, new_idx
-        real(dp) :: new_weight
-        logical, dimension(n) :: unused = .true.
-        !! if unused, set weight to 0
+        real(dp) :: new_weight, rand
+        logical, dimension(size(positions, 2)) :: unused
+        unused = .true.
 
-        !! pcik first mean at random
-        i = floor(rand() * n + 1) 
-        means(1) = positions(i)
+
+        !! pick first mean at random
+        call random_number(rand)
+        i = floor(rand * size(positions, 1) + 1) 
+        means(1, :) = positions(i, :)
         unused(i) = .false.
 
         do ii = 2, k
-            do i = 1, n    
+            do i = 1, size(positions, 1)    
                 if (unused(i)) then
                     !! calculate distance to most recently added mean, replace
                     !! if closer
-                    new_weight = norm2(positions(i) - means(ii-1))
+                    new_weight = norm2(positions(i, :) - means(ii-1, :))
                     if (new_weight < weights(i)) weights(i) = new_weight
                 else
+                    !! if unused, set weight to 0
                     weights(i) = 0
                 end if
             end do
             new_idx = sample_by_weights(weights)
-            means(ii) = positions(new_idx)
+            means(ii, :) = positions(new_idx, :)
             unused(new_idx) = .false.
         end do
 
         
     end function
 
-    function kmeans_clustering(positions, k) result (cluster_list) 
+    function do_kmeans(positions, k) result (cluster_list) 
 
         ! positions (number of points, dimensions)
         real(dp), intent(in), dimension(:, :) :: positions
         integer , intent(in) :: k 
+        integer, dimension(size(positions, 1)) :: cluster_list
         integer :: i, ii, i_closest
-        integer :: n = size(positions, 1) ! number of points
-        integer :: num_dimensions = size(positions, 2) ! dimension of space
-        real(dp), dimension(k, num_dimensions) :: means
-        real(dp), dimension(k, n) :: responsibilities = 0
+        real(dp), dimension(k, size(positions, 2)) :: means
+        real(dp), dimension(k, size(positions, 1)) :: distances
+        real(dp), dimension(k, size(positions, 1)) :: responsibilities
         logical :: finished = .false.
         real(dp) :: R ! sum of responsibilities for a point
-        real(dp), dimension(n) :: old_mean
+        real(dp), dimension(size(positions, 2)) :: old_mean
+
+        responsibilities = 0
 
         !! use kmeans!! to seed
         !! assignment step
         do while(.not. finished)
             distances = distance_matrix(means, positions)
-            do ii = 1, n
+            do ii = 1, size(positions, 1)
                 i_closest = 1
                 do i = 2, k
                     ! reassign responsibility if distance is closer or,
                     ! if distances are the same, assign to the smaller cluster
                     if (distances(i, ii) < distances(i_closest, ii) &
                         .or. distances(i, ii) == distances(i_closest, ii) &
-                        .and. sum(responsibilities(i)) > sum(responsibilities(i_closest))) then
-                        responsibility(i_closest, ii) = 0
-                        responsibility(i, ii) = 1
+                        .and. sum(responsibilities(i, :)) > sum(responsibilities(i_closest, :))) then
+                        responsibilities(i_closest, ii) = 0
+                        responsibilities(i, ii) = 1
+                        cluster_list(ii) = i
                         i_closest = i
                     end if 
                 end do
@@ -348,17 +353,17 @@ module kmeans_clustering
             !! calculate new means and check if any have changed
             do i = i, k
                 finished = .true.
-                R = sum(responsibilities(i))
+                R = sum(responsibilities(i, :))
                 if (R > 0) then
-                    old_mean = means(i)
-                    means(i) = dot(responbilities(i), positions) / R
+                    old_mean = means(i, :)
+                    means = matmul(responsibilities, positions) / R
 
                     ! if any mean is changed, clustering is not finished
-                    if (old_mean /= means(i)) finished = .false.
+                    if (any(old_mean /= means(i, :))) finished = .false.
                 end if
             end do
-        end
-
+        end do
+    end function
 
 end module kmeans_clustering
 
