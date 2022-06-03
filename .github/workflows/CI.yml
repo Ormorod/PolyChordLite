@@ -47,6 +47,7 @@ jobs:
     runs-on: macos-latest
     env:
       FC: gfortran-11
+      CXX: gcc-11
     strategy:
       matrix:
         cc: [gcc]
