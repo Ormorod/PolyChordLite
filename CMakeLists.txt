@@ -112,31 +112,5 @@ if (python)
     # place all outputs in one place
     install(TARGETS _pypolychord
             LIBRARY DESTINATION ${target_lib_dir})
-
-    #################################################################
-    # The simple python module
-    #################################################################
-
-    set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup_cmake_template.py")
-    set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-    set(DEPS "${CMAKE_CURRENT_SOURCE_DIR}/pypolychord/__init__.py")
-    set(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp") # dummy target for dependence
-
-    # fill in the variables of the setup.py file
-    configure_file(${SETUP_PY_IN} ${SETUP_PY})
-
-    # custom target
-    add_custom_command(OUTPUT ${OUTPUT}
-            COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} build
-            COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-            DEPENDS ${DEPS} _pypolychord)
-    add_custom_target(target ALL DEPENDS ${OUTPUT})
-
-    # installation with setup.py
-    if (python_user_install)
-        install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install)")
-    else (python_user_install)
-        install(CODE "execute_process(COMMAND ${Python3_EXECUTABLE} ${SETUP_PY} install --user)")
-    endif (python_user_install)
-
+    
 endif (python)
