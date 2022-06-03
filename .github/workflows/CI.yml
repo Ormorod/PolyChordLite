@@ -42,3 +42,26 @@ jobs:
 
     - name: Test pypolychord (MPI)
       run: mpirun -np 2 python run_pypolychord.py
+
+  pip_macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        brew install cmake gcc openmpi
+        pip install --upgrade pip
+
+    - name: Install pypolychord
+      run: pip install -v .
+
+    - name: Test pypolychord
+      run: python run_pypolychord.py
+
+    - name: Test pypolychord (MPI)
+      run: mpirun -np 2 python run_pypolychord.py
