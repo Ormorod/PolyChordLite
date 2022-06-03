@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, cmake-dev ]
 # don't run the CRON part in my fork
 #  schedule:
 #    - cron: "0 0 * * *"
