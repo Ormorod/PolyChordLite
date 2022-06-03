@@ -60,6 +60,8 @@ jobs:
     - name: Install dependencies
       run: |
         brew install python cmake openmpi gcc
+        echo which gfortran
+        echo which gcc
         export FC=gfortran-11
         pip3 install --upgrade pip
 
