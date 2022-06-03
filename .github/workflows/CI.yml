@@ -56,10 +56,10 @@ jobs:
     - name: Install dependencies
       run: |
         brew install cmake openmpi
-        pip3 install --upgrade pip
+        pip install --upgrade pip
 
     - name: Install pypolychord
-      run: pip3 install -v .
+      run: pip install -v .
 
     - name: Test pypolychord
       run: python run_pypolychord.py
