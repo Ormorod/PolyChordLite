@@ -64,6 +64,7 @@ jobs:
       run: |
         brew install python cmake openmpi gcc 
         pip3 install --upgrade pip
+        pip3 install numpy
 
     - name: Install pypolychord
       run: pip3 install -v .
