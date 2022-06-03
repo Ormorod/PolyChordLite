@@ -97,7 +97,7 @@ class cmake_build_ext(build_ext):
         build_temp.mkdir(parents=True, exist_ok=True)
 
         os.chdir(str(build_temp))
-        self.spawn(["cmake", str(cwd)])
+        self.spawn(["cmake", str(cwd)t ])
         self.spawn(["make"])
         os.chdir(cwd)
 
