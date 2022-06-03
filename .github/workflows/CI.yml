@@ -46,7 +46,7 @@ jobs:
   pip_macos:
     runs-on: macos-latest
     env:
-      FC: gfortran
+      FC: gfortran-11
     strategy:
       matrix:
         cc: [gcc]
