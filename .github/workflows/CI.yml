@@ -47,7 +47,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        cc: [clang]
+        cc: [gcc]
         python-version: [3.8]
     
     steps:
@@ -59,7 +59,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python cmake openmpi
+        brew install python cmake openmpi gcc
         pip3 install --upgrade pip
 
     - name: Install pypolychord
