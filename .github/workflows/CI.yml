@@ -63,14 +63,14 @@ jobs:
     - name: Install dependencies
       run: |
         brew install python@${{matrix.python-version}} cmake openmpi gcc 
-        pip3 install --upgrade pip
-        pip3 install numpy
+        python${{matrix.python-version}} -m pip3 install --upgrade pip
+        python${{matrix.python-version}} -m pip3 install numpy
 
     - name: Install pypolychord
-      run: pip3 install -v .
+      run: python${{matrix.python-version}} -m pip3 install -v .
 
     - name: Test pypolychord
-      run: python3 run_pypolychord.py
+      run: python${{matrix.python-version}} run_pypolychord.py
 
     - name: Test pypolychord (MPI)
-      run: mpirun -np 2 python3 run_pypolychord.py
+      run: mpirun -np 2 python${{matrix.python-version}} run_pypolychord.py
