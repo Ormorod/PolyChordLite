@@ -82,6 +82,9 @@ if (python)
     # The Compiled .so file
     #################################################################
 
+    # Find correct python
+    set(Python3_EXECUTABLE COMMAND "which python")
+
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
     find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
