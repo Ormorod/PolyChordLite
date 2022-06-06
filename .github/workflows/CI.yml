@@ -51,7 +51,7 @@ jobs:
     strategy:
       matrix:
         cc: [gcc]
-        python-version: [homebrew]
+        python-version: [3.8]
     
     steps:
     - uses: actions/checkout@v2
@@ -62,7 +62,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python cmake openmpi gcc 
+        brew install python@${{matrix.python-version}} cmake openmpi gcc 
         pip3 install --upgrade pip
         pip3 install numpy
 
