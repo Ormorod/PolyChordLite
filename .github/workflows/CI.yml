@@ -62,22 +62,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # brew install pyenv
-        # pyenv install ${{matrix.python-version}}
-        # pyenv global ${{matrix.python-version}}
-        # eval "$(pyenv init -)"
-        python --version
         brew install cmake openmpi gcc pyenv
         python -m pip install --upgrade pip
-        # python -m pip install numpy
+        python -m pip install numpy
 
     - name: Install pypolychord
       run: |
-        # eval "$(pyenv init -)"
-        python --version
-        which python
         python -m pip install -v .
-
 
     # - name: Test pypolychord
     #   run: python run_pypolychord.py

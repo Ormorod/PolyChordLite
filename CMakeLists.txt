@@ -83,17 +83,9 @@ if (python)
     #################################################################
 
     
-    # find the correct python version
-    EXECUTE_PROCESS(
-            COMMAND "echo $(which python)"
-            OUTPUT_VARIABLE python_path
-    ) 
-
-    message(STATUS ${python_path})
-
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
-    find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED) # Python3_FIND_STRATEGY LOCATION) # Python3_ROOT_DIR ${python_path})
+    find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED) 
 
     # find out the suffix for the current python version
     EXECUTE_PROCESS(
