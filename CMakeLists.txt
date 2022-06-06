@@ -89,6 +89,8 @@ if (python)
             OUTPUT_VARIABLE python_path
     ) 
 
+    message(${python_path})
+
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
     find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED Python3_ROOT_DIR ${python_path})
