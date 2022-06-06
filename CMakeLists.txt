@@ -82,12 +82,9 @@ if (python)
     # The Compiled .so file
     #################################################################
 
-    # Find correct python
-    set(Python3_ROOT_DIR COMMAND "which python")
-
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
-    find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+    find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED Python3_ROOT_DIR COMMAND "which python"))
 
     # find out the suffix for the current python version
     EXECUTE_PROCESS(
