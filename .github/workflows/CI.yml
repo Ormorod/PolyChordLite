@@ -70,6 +70,7 @@ jobs:
         brew install openmpi gcc pyenv
         python -m pip install --upgrade pip
         python -m pip install cmake
+        cmake --version
 
     - name: Install pypolychord
       run: |
