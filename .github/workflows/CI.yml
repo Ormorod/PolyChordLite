@@ -73,7 +73,7 @@ jobs:
 
     - name: Install pypolychord
       run: |
-        eval "$(pyenv init -)"
+        # eval "$(pyenv init -)"
         python --version
         which python
         Python_EXECUTABLE=$(which python)
