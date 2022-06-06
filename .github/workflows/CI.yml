@@ -55,17 +55,17 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-    # - name: Set up Python ${{ matrix.python-version }}
-      # uses: actions/setup-python@v2
-      # with:
-        # python-version: ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
-        brew install pyenv
-        pyenv install ${{matrix.python-version}}
-        pyenv global ${{matrix.python-version}}
-        eval "$(pyenv init -)"
+        # brew install pyenv
+        # pyenv install ${{matrix.python-version}}
+        # pyenv global ${{matrix.python-version}}
+        # eval "$(pyenv init -)"
         python --version
         brew install cmake openmpi gcc pyenv
         python -m pip install --upgrade pip
