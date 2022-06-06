@@ -72,7 +72,11 @@ jobs:
         python -m pip install numpy
 
     - name: Install pypolychord
-      run: python -m pip install -v .
+      run: |
+        eval "$(pyenv init -)"
+        python --version
+        python -m pip install -v .
+
 
     - name: Test pypolychord
       run: python run_pypolychord.py
