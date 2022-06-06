@@ -71,29 +71,16 @@ jobs:
         python -m pip install --upgrade pip
         # python -m pip install numpy
 
-    - name: Create virtual environment
-      run: |
-        python -m venv env_pypolychord
-        source env_pypolychord/bin/activate
-        which python
-
     - name: Install pypolychord
       run: |
         # eval "$(pyenv init -)"
-        source env_pypolychord/bin/activate
         python --version
         which python
-        Python_EXECUTABLE=$(which python)
-        $python_exectuable
         python -m pip install -v .
 
 
     - name: Test pypolychord
-      run: |
-        source env_pypolychord/bin/activate
-        python run_pypolychord.py
+        run: python run_pypolychord.py
 
     - name: Test pypolychord (MPI)
-      run: |
-        source env_pypolychord/bin/activate
-        mpirun -np 2 python run_pypolychord.py
+        run: mpirun -np 2 python run_pypolychord.py

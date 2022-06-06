@@ -83,13 +83,13 @@ if (python)
     #################################################################
 
     
-    # # find the correct python version
-    # EXECUTE_PROCESS(
-    #         COMMAND "which python"
-    #         OUTPUT_VARIABLE python_path
-    # ) 
+    # find the correct python version
+    EXECUTE_PROCESS(
+            COMMAND "echo $(which python)"
+            OUTPUT_VARIABLE python_path
+    ) 
 
-    # message(STATUS ${python_path})
+    message(STATUS ${python_path})
 
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
