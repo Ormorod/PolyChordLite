@@ -75,6 +75,7 @@ jobs:
       run: |
         eval "$(pyenv init -)"
         python --version
+        PYTHON_EXECUTABLE=$(which python)
         python -m pip install -v .
 
 
