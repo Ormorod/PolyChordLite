@@ -44,14 +44,14 @@ jobs:
       run: mpirun -np 2 python run_pypolychord.py
 
   pip_macos:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     env:
       FC: gfortran-11
       CXX: gcc-11
     strategy:
       matrix:
         cc: [gcc]
-        python-version: [3.9]
+        python-version: [3.8]
     
     steps:
     - uses: actions/checkout@v2
