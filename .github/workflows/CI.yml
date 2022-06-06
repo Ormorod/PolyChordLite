@@ -70,6 +70,9 @@ jobs:
       run: |
         python -m pip install -v .
 
+    - name: Import pypolychord
+      run: python -c "import pypolychord"
+
     - name: Test pypolychord
       run: python run_pypolychord.py
 
