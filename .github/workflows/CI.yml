@@ -64,6 +64,7 @@ jobs:
       run: |
         brew install pyenv
         pyenv install ${{matrix.python-version}}
+        pyenv global ${{matrix.python-version}}
         python --version
         brew install cmake openmpi gcc pyenv
         python -m pip install --upgrade pip
