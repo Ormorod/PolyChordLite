@@ -66,11 +66,11 @@ jobs:
         pyenv install ${{matrix.python-version}}
         python --version
         brew install cmake openmpi gcc pyenv
-        python -m pip3 install --upgrade pip
-        python -m pip3 install numpy
+        python -m pip install --upgrade pip
+        python -m pip install numpy
 
     - name: Install pypolychord
-      run: python -m pip3 install -v .
+      run: python -m pip install -v .
 
     - name: Test pypolychord
       run: python run_pypolychord.py
