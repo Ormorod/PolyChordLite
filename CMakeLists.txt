@@ -89,7 +89,7 @@ if (python)
             OUTPUT_VARIABLE python_path
     ) 
 
-    message(${python_path})
+    message(STATUS ${python_path})
 
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
