@@ -83,7 +83,7 @@ if (python)
     #################################################################
 
     # Find correct python
-    set(Python3_EXECUTABLE COMMAND "which python")
+    set(Python3_ROOT_DIR COMMAND "which python")
 
     # PyPolyChord stuff
     message(STATUS "Enabling Python package build")
