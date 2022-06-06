@@ -67,9 +67,9 @@ jobs:
         # pyenv global ${{matrix.python-version}}
         # eval "$(pyenv init -)"
         python --version
-        brew install openmpi gcc pyenv
+        brew install cmake openmpi gcc pyenv
         python -m pip install --upgrade pip
-        python -m pip install cmake
+        # python -m pip install numpy
 
     - name: Install pypolychord
       run: |
