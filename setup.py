@@ -97,7 +97,7 @@ class cmake_build_ext(build_ext):
         build_temp.mkdir(parents=True, exist_ok=True)
 
         os.chdir(str(build_temp))
-        self.spawn([f"cmake -DPython3_EXECUTABLE=$(which python)", str(cwd)])
+        self.spawn(["cmake", str(cwd), f"-DPython3_EXECUTABLE={sys.executable}"])
         self.spawn(["make"])
         os.chdir(cwd)
 
