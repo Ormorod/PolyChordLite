@@ -69,7 +69,7 @@ jobs:
         python --version
         brew install cmake openmpi gcc pyenv
         python -m pip install --upgrade pip
-        python -m pip install numpy
+        # python -m pip install numpy
 
     - name: Create virtual environment
       run: |
@@ -80,6 +80,7 @@ jobs:
     - name: Install pypolychord
       run: |
         # eval "$(pyenv init -)"
+        source env_pypolychord/bin/activate
         python --version
         which python
         Python_EXECUTABLE=$(which python)
@@ -88,7 +89,11 @@ jobs:
 
 
     - name: Test pypolychord
-      run: python run_pypolychord.py
+      run: |
+        source env_pypolychord/bin/activate
+        python run_pypolychord.py
 
     - name: Test pypolychord (MPI)
-      run: mpirun -np 2 python run_pypolychord.py
+      run: |
+        source env_pypolychord/bin/activate
+        mpirun -np 2 python run_pypolychord.py
