@@ -169,7 +169,7 @@ if sys.platform == "darwin":
         author_email='wh260@cam.ac.uk',
         license='PolyChord',
         packages=find_packages(),
-        install_requires=['numpy','scipy'],
+        install_requires=['numpy==1.21','scipy'],
         extras_require={'plotting': 'getdist'},
         distclass=DistributionWithOption,
         ext_modules=[CMakeExtension("_pypolychord")],
