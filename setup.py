@@ -110,7 +110,7 @@ class DistributionWithOption(Distribution, object):
         self.debug_flags = None
         super(DistributionWithOption, self).__init__(*args, **kwargs)
 
-class CustomBuildPy(_build_py, object):
+class CustomBuildExt(build_ext, object):
     def run(self):
         env = {}
         env["PATH"] = os.environ["PATH"]
@@ -160,7 +160,7 @@ class CustomBuildPy(_build_py, object):
             shutil.copy(os.path.join(BASE_PATH, "lib/libchord.so"), 
                         os.path.join(BASE_PATH, "pypolychord/lib/"))
             self.run_command("build_ext")
-        return super(CustomBuildPy, self).run()
+        return super().run()
 
 class CustomClean(_clean):
     def run(self):
@@ -214,7 +214,7 @@ setup(name=NAME,
     extras_require={'plotting': 'getdist'},
     distclass=DistributionWithOption,
     ext_modules=[pypolychord_module],
-    cmdclass={'build_py' : CustomBuildPy,
+    cmdclass={'build_ext' : CustomBuildExt,
                     'clean' : CustomClean},   
     package_data={"" : ["lib/libchord.so"]},
     include_package_data=True,
