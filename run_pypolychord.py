@@ -1,4 +1,6 @@
+print(from numpy import pi, log, sqrt)
 from numpy import pi, log, sqrt
+print("import pypolychord")
 import pypolychord
 print("from pypolychord.settings import PolyChordSettings")
 from pypolychord.settings import PolyChordSettings
