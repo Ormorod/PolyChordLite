@@ -66,11 +66,10 @@ jobs:
       run: |
         brew install cmake openmpi gcc 
         python -m pip install --upgrade pip
-        python -m pip install scipy
 
-    # - name: Install pypolychord
-    #   run: |
-    #     python -m pip install -v .
+    - name: Install pypolychord
+      run: |
+        python -m pip install -v .
 
     # - name: Import pypolychord
     #   run: python -c "import pypolychord"
