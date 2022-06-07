@@ -1,6 +1,8 @@
 from numpy import pi, log, sqrt
 import pypolychord
+print("from pypolychord.settings import PolyChordSettings")
 from pypolychord.settings import PolyChordSettings
+print("from pypolychord.priors import UniformPrior")
 from pypolychord.priors import UniformPrior
 try:
     from mpi4py import MPI
@@ -39,7 +41,7 @@ def dumper(live, dead, logweights, logZ, logZerr):
     print("Last dead point:", dead[-1])
 
 #| Initialise the settings
-
+print("about to create settings")
 settings = PolyChordSettings(nDims, nDerived)
 settings.file_root = 'gaussian'
 settings.nlive = 200
