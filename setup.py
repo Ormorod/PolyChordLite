@@ -68,7 +68,7 @@ class CMakeExtension(Extension):
     def __init__(self, name):
         super().__init__(name, sources=[])
 
-class cmake_build_ext(build_ext):
+class CMakeBuildExt(build_ext):
     def run(self):
         for ext in self.extensions:
             self.build_cmake(ext)
@@ -174,7 +174,7 @@ if sys.platform == "darwin":
         distclass=DistributionWithOption,
         ext_modules=[CMakeExtension("_pypolychord")],
 
-        cmdclass={"build_ext": cmake_build_ext},
+        cmdclass={"build_ext": CMakeBuildExt},
         
         package_data={"" : ["lib/libchord.so"]},
         include_package_data=True,
