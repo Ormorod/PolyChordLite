@@ -1,4 +1,4 @@
-print(from numpy import pi, log, sqrt)
+print("from numpy import pi, log, sqrt")
 from numpy import pi, log, sqrt
 print("import pypolychord")
 import pypolychord
