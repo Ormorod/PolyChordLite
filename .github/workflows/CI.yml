@@ -74,6 +74,9 @@ jobs:
     - name: Import pypolychord
       run: python -c "import pypolychord"
 
+    - name: Hello world
+      run: python hello_world.py
+
     - name: Test pypolychord
       run: python run_pypolychord.py
 
