@@ -47,7 +47,7 @@ settings.do_clustering = True
 settings.read_resume = False
 
 #| Run PolyChord
-
+print("about to run_pypolychord")
 output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper)
 
 #| Create a paramnames file
