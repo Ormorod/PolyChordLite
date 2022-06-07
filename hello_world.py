@@ -53,5 +53,5 @@ settings.do_clustering = True
 settings.read_resume = False
 
 #| Run PolyChord
-print("about to run_pypolychord")
+print("about to run_pypolychord", flush=True)
 output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper)
