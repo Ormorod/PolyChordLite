@@ -66,6 +66,7 @@ jobs:
       run: |
         brew install cmake openmpi gcc 
         python -m pip install --upgrade pip
+        python -m pip install numpy==1.12
 
     - name: Install pypolychord
       run: |
