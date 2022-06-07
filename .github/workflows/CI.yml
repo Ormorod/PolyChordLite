@@ -53,7 +53,7 @@ jobs:
       matrix:
         # cc: [gcc]
         cc: [clang]
-        python-version: [3.8]
+        python-version: [3.9.13]
     
     steps:
     - uses: actions/checkout@v2
