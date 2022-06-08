@@ -121,7 +121,7 @@ class CMakeBuildExt(build_ext):
         print("managed to change directory")
         env["PWD"] = str(build_temp)
         env.update({k : os.environ[k] for k in ["CC", "CXX", "FC"] if k in os.environ})
-        subprocess.check_call(["cmake", str(cwd), f"-DPython3_EXECUTABLE={sys.executable}"]) #, env=env) #, cwd=str(build_temp))
+        subprocess.check_call(["cmake", str(cwd), f"-DPython3_EXECUTABLE={sys.executable}"], env=env) #, cwd=str(build_temp))
         print("cmade")
         subprocess.check_call(["make", "-e"], env=env) #, cwd=str(build_temp))
         os.chdir(cwd)
