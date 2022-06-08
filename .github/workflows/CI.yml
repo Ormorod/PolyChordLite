@@ -60,10 +60,6 @@ jobs:
         python -m pip install --upgrade pip
         brew install cmake openmpi gcc
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-
     - name: Install pypolychord
       run: pip install -v .
 
