@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master, master-macos ]
+    branches: [ master, ormorod:master-macos]
   schedule:
     - cron: "0 0 * * *"
 
