@@ -4,7 +4,6 @@ Python interface to PolyChord
 Polychord is a tool to solve high dimensional problems.
 """
 
-from tkinter import W
 from setuptools import setup, Extension, find_packages, Distribution
 from setuptools.command.build_py import build_py as _build_py
 from distutils.command.clean import clean as _clean
