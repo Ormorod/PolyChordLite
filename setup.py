@@ -92,13 +92,38 @@ class CMakeBuildExt(build_ext):
     
     def build_cmake(self, ext):
         print(self.build_temp)
-        cwd = pathlib.Path().absolute()
+        cwd = pathlib.Path().cwd()
         build_temp = pathlib.Path(self.build_temp)
         build_temp.mkdir(parents=True, exist_ok=True)
 
+        # os.chdir(str(build_temp))
+        # self.spawn(["cmake", str(cwd), f"-DPython3_EXECUTABLE={sys.executable}"])
+        # self.spawn(["make"])
+        env = {}
+        env["PATH"] = os.environ["PATH"]
+        if self.distribution.no_mpi is None:
+            env["MPI"] = "1"
+            # These need to be set so that build_ext uses the right compilers
+            cc_compiler = subprocess.check_output(["make", "print_CC"]).decode('utf-8').strip()
+            os.environ["CC"] = cc_compiler
+
+            cxx_compiler = subprocess.check_output(["make", "print_CXX"]).decode('utf-8').strip()
+            os.environ["CXX"] = cxx_compiler
+        else:
+            env["MPI"] = "0"
+
+        if self.distribution.debug_flags is not None:
+            self.distribution.ext_modules[0].extra_compile_args += ["-g", "-O0"]
+            env["DEBUG"] = "1"
+        
+        # BASE_PATH = os.path.dirname(os.path.abspath(__file__))
         os.chdir(str(build_temp))
-        self.spawn(["cmake", str(cwd)])
-        self.spawn(["make"])
+        print("managed to change directory")
+        env["PWD"] = str(build_temp)
+        env.update({k : os.environ[k] for k in ["CC", "CXX", "FC"] if k in os.environ})
+        subprocess.check_call(["cmake", str(cwd), f"-DPython3_EXECUTABLE={sys.executable}"], env=env) #, cwd=str(build_temp))
+        print("cmade")
+        subprocess.check_call(["make", "-e"], env=env) #, cwd=str(build_temp))
         os.chdir(cwd)
 
 class DistributionWithOption(Distribution, object):

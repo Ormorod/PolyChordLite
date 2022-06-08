@@ -1,3 +1,5 @@
+print("hello world")
+from scipy.special import erfinv
 print("from numpy import pi, log, sqrt")
 from numpy import pi, log, sqrt
 print("import pypolychord")
@@ -51,30 +53,5 @@ settings.do_clustering = True
 settings.read_resume = False
 
 #| Run PolyChord
-print("about to run_pypolychord")
+print("about to run_pypolychord", flush=True)
 output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper)
-
-#| Create a paramnames file
-
-paramnames = [('p%i' % i, r'\theta_%i' % i) for i in range(nDims)]
-paramnames += [('r*', 'r')]
-output.make_paramnames_files(paramnames)
-
-#| Make an anesthetic plot (could also use getdist)
-try:
-    from anesthetic import NestedSamples
-    samples = NestedSamples(root= settings.base_dir + '/' + settings.file_root)
-    fig, axes = samples.plot_2d(['p0','p1','p2','p3','r'])
-    fig.savefig('posterior.pdf')
-
-except ImportError:
-    try:
-        import getdist.plots
-        posterior = output.posterior
-        g = getdist.plots.getSubplotPlotter()
-        g.triangle_plot(posterior, filled=True)
-        g.export('posterior.pdf')
-    except ImportError:
-        print("Install matplotlib and getdist for plotting examples")
-
-    print("Install anesthetic or getdist  for for plotting examples")
