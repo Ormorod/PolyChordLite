@@ -45,10 +45,10 @@ jobs:
 
   pip_macos:
     runs-on: macos-12
-    env:
-      FC: gfortran-11
-      # CXX: gcc-11
-      CXX: gfortran-11
+    # env:
+    #   FC: gfortran-11
+    #   # CXX: gcc-11
+    #   CXX: gfortran-11
     strategy:
       matrix:
         # cc: [gcc]
