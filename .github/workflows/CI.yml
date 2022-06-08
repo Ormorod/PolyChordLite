@@ -4,9 +4,9 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
-  schedule:
-    - cron: "0 0 * * *"
+    branches: [ master, main ]
+  # schedule:
+  #   - cron: "0 0 * * *"
 
   workflow_dispatch:
 
@@ -32,6 +32,33 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install mpi4py
+
+    - name: Install pypolychord
+      run: pip install -v .
+
+    - name: Test pypolychord
+      run: python run_pypolychord.py
+
+    - name: Test pypolychord (MPI)
+      run: mpirun -np 2 python run_pypolychord.py
+
+  pip_macos:
+    runs-on: macos-11
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies (macOS)
+      run: |
+        python -m pip install --upgrade pip
+        brew install cmake openmpi gcc
 
     - name: Install pypolychord
       run: pip install -v .
