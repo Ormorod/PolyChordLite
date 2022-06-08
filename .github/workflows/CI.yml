@@ -64,7 +64,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install cmake openmpi gcc 
+        brew install cmake openmpi gcc gfortran 
         python -m pip install --upgrade pip
 
     - name: Install pypolychord
