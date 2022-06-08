@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-   pip:
+  pip:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
