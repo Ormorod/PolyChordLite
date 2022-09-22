@@ -563,6 +563,7 @@ def run(loglikelihood, nDims, **kwargs):
         "nDerived": 0,
         "prior": default_prior,
         "dumper": default_dumper,
+        "cluster": default_cluster,
         'nlive': nDims*25,
         'num_repeats': nDims*5,
         'nprior': -1,
@@ -627,11 +628,14 @@ def run(loglikelihood, nDims, **kwargs):
     def wrap_prior(cube, theta):
         theta[:] = kwargs["prior"](cube)
 
+    def wrap_cluster(points, cluster_list):
+        cluster_list[:] = kwargs["cluster"](points) + 1
 
     # Run polychord from module library
     _pypolychord.run(wrap_loglikelihood,
         wrap_prior,
         kwargs["dumper"],
+        wrap_cluster,
         nDims,
         kwargs["nDerived"],
         kwargs['nlive'],
