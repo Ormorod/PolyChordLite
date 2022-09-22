@@ -1,4 +1,3 @@
-import os
 from numpy import pi, log
 import numpy as np
 import pypolychord
