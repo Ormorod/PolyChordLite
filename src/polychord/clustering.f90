@@ -4,51 +4,50 @@ module KNN_clustering
     implicit none
     contains
 
-    !> This function returns a clustering from a similarity matrix based on
-    !! 'nearest neighbor' clustering.
+    !> This function returns a clustering from a distance^2 matrix based on
+    !! 'nearest neighbour' clustering.
     !!
     !! Points belong to the same cluster if they are in either of each others k
-    !! nearest neighbor sets. 
+    !! nearest neighbour sets. 
     !!
-    !! The algorithm computes the k nearest neighbor sets from the similarity
+    !! The algorithm computes the k nearest neighbor sets from the distance^2
     !! matrix, and then tests
-    recursive function NN_clustering(similarity_matrix,num_clusters) result(cluster_list)
+    recursive function NN_clustering(distance2_matrix) result(cluster_list)
         use utils_module, only: relabel
         use abort_module, only: halt_program
         implicit none
 
-        real(dp), intent(in), dimension(:,:) :: similarity_matrix
+        real(dp), intent(in), dimension(:,:) :: distance2_matrix
 
-        integer, dimension(size(similarity_matrix,1)) :: cluster_list
-        integer, intent(out):: num_clusters
+        integer, dimension(size(distance2_matrix,1)) :: cluster_list
 
         integer :: num_clusters_new
 
-        integer, dimension(size(similarity_matrix,1)) :: cluster_list_old
+        integer, dimension(size(distance2_matrix,1)) :: cluster_list_old
         integer :: num_clusters_old
 
-        integer, dimension(size(similarity_matrix,1),size(similarity_matrix,1)) :: knn
+        integer, dimension(size(distance2_matrix,1),size(distance2_matrix,1)) :: knn
 
         integer :: k
         integer :: nlive
         integer :: n
         integer :: i_cluster
         integer :: i_point
+        integer :: num_clusters
 
         integer, allocatable, dimension(:) :: points
 
         ! Get the number of points to be clustered
-        nlive=size(similarity_matrix,1)
+        nlive=size(distance2_matrix,1)
 
         ! 10 degrees of separation are usually fine, we'll expand this if necessary
         k = min(nlive,10)
 
-        ! compute the k nearest neighbors for each point
-        knn(:k,:) = compute_knn(similarity_matrix,k)
+        ! compute the k nearest neighbours for each point
+        knn(:k,:) = compute_knn(distance2_matrix,k)
 
         ! Set up the cluster list
         cluster_list_old = [( i_point,i_point=1,nlive )]
-        num_clusters_old = nlive
 
         do n=2,k
 
@@ -66,12 +65,11 @@ module KNN_clustering
             else if(n==k) then
                 ! If we need to cluster further, then expand the knn list
                 k=min(k*2,nlive)
-                knn(:k,:) = compute_knn(similarity_matrix,k)
+                knn(:k,:) = compute_knn(distance2_matrix,k)
             end if
 
             ! Save the old cluster list for later.
             cluster_list_old = cluster_list
-            num_clusters_old = num_clusters
 
         end do
 
@@ -83,8 +81,9 @@ module KNN_clustering
                 ! Get the indices of cluster i_cluster
                 call get_indices_of_cluster(cluster_list,points,i_cluster)
 
-                ! Call this function again on the similarity sub matrix, adding an offset
-                cluster_list(points) = num_clusters + NN_clustering(similarity_matrix(points,points),num_clusters_new)
+                ! Call this function again on the distance^2 sub matrix, adding an offset
+                cluster_list(points) = num_clusters + NN_clustering(distance2_matrix(points,points))
+                num_clusters_new = maxval(cluster_list(points))-num_clusters
 
                 ! If we didn't find any new clusters, then move on to the next one
                 if(num_clusters_new==1) i_cluster=i_cluster+1
@@ -113,8 +112,8 @@ module KNN_clustering
 
                 ! If they're not in the same cluster already...
                 if(c(i)/=c(j)) then
-                    ! ... check to see if they are within each others k nearest neighbors...
-                    if( neighbors( knn(:,i),knn(:,j) ) ) then
+                    ! ... check to see if they are within each others k nearest neighbours...
+                    if( neighbours( knn(:,i),knn(:,j) ) ) then
 
                         ! If they are then relabel cluster_i and cluster_j to the smaller of the two
                         where(c==c(i).or.c==c(j)) 
@@ -131,17 +130,17 @@ module KNN_clustering
 
 
 
-    function compute_knn(similarity_matrix,k) result(knn)
+    function compute_knn(distance2_matrix,k) result(knn)
         implicit none
 
         !> The data to compute on
-        real(dp), intent(in),dimension(:,:) :: similarity_matrix
+        real(dp), intent(in),dimension(:,:) :: distance2_matrix
 
-        !> The number of nearest neighbors to compute
+        !> The number of nearest neighbours to compute
         integer, intent(in) :: k
 
-        ! The indices of the k nearest neighbors to output
-        integer, dimension(k,size(similarity_matrix,1)) :: knn
+        ! The indices of the k nearest neighbours to output
+        integer, dimension(k,size(distance2_matrix,1)) :: knn
 
         integer :: nPoints,i,j
 
@@ -149,22 +148,22 @@ module KNN_clustering
 
         real(dp), dimension(k) :: distance2s
 
-        nPoints = size(similarity_matrix,1)
+        nPoints = size(distance2_matrix,1)
 
         knn=0
 
         do i=1,nPoints
-            ! Find the k nearest neighbors for each point
+            ! Find the k nearest neighbours for each point
             distance2s = huge(1d0)
             do j=1,nPoints
                 ! If the distance between i and j is too large to be considered,
                 ! this returns 0
                 ! otherwise this returns the position to insert
-                insert_index = minloc(distance2s, mask=distance2s>similarity_matrix(i,j))
+                insert_index = minloc(distance2s, mask=distance2s>distance2_matrix(i,j))
                 ! If it needs to be inserted, insert into both the integer
                 ! array, and the local distance2s array
                 if(insert_index(1)/=0) then
-                    distance2s(insert_index(1):) =  eoshift( distance2s(insert_index(1):), -1,dim=1,boundary=similarity_matrix(i,j))
+                    distance2s(insert_index(1):) =  eoshift( distance2s(insert_index(1):), -1,dim=1,boundary=distance2_matrix(i,j))
                     knn(insert_index(1):,i) =  eoshift( knn(insert_index(1):,i) ,-1 ,dim=1, boundary=j)
                 end if
             end do
@@ -174,22 +173,22 @@ module KNN_clustering
     end function compute_knn
 
 
-    ! Return whether they're each others n nearest neighbor list
-    function neighbors(knn1,knn2) result(same_list)
+    ! Return whether they're each others n nearest neighbour list
+    function neighbours(knn1,knn2) result(same_list)
         implicit none
         integer,intent(in), dimension(:) :: knn1
         integer,intent(in), dimension(:) :: knn2 
 
         logical :: same_list
 
-        ! Check to see if they're in each others neighbors lists
+        ! Check to see if they're in each others neighbours lists
         same_list= any(knn1==knn2(1)) .or. any(knn2==knn1(1))
 
-    end function neighbors
+    end function neighbours
 
 
 
-    ! Return the number of matches in the n nearest neighbor list
+    ! Return the number of matches in the n nearest neighbour list
     function matches(knn1,knn2)
         implicit none
         integer,intent(in), dimension(:) :: knn1
@@ -250,10 +249,10 @@ module cluster_module
     implicit none
     contains
 
-    function do_clustering(settings,RTI,sub_dimensions)
+    function do_clustering(settings,RTI,cluster,sub_dimensions)
         use settings_module,   only: program_settings
         use run_time_module,   only: run_time_info,add_cluster
-        use calculate_module,  only: calculate_similarity_matrix
+        use calculate_module,  only: calculate_distance2_matrix
         use KNN_clustering,    only: NN_clustering
         implicit none
 
@@ -263,12 +262,21 @@ module cluster_module
         type(run_time_info), intent(inout) :: RTI
         !> Dimensions to cluster on
         integer,dimension(:),optional,intent(in) :: sub_dimensions
+
+        interface
+            function cluster(points) result(cluster_list)
+                import :: dp
+                real(dp), intent(in), dimension(:,:) :: points
+                integer, dimension(size(points,2)) :: cluster_list
+            end function
+        end interface
+
         !> Whether or not a cluster has been found
         logical :: do_clustering
 
 
-        ! Similarity matrix
-        real(dp),dimension(sum(RTI%nlive),sum(RTI%nlive)) :: similarity_matrix
+        ! distance^2 matrix
+        real(dp),dimension(settings%nDims,sum(RTI%nlive)) :: points
         integer,dimension(sum(RTI%nlive)) :: clusters
 
         integer :: num_clusters
@@ -276,6 +284,8 @@ module cluster_module
 
         ! number of live points
         integer :: nlive
+        ! number of dimensions
+        integer :: nDims
 
         integer :: i_cluster
 
@@ -285,22 +295,32 @@ module cluster_module
         ! Get the number of old clusters
         num_old_clusters=RTI%ncluster
 
+        ! get the number of dimensions
+        nDims = settings%nDims
+
         i_cluster = 1
         do while(i_cluster<=num_old_clusters)
 
             nlive = RTI%nlive(i_cluster) ! Get the number of live points in a temp variable
 
             if(nlive>2) then 
-                ! Calculate the similarity matrix for this cluster
+                ! get the position matrix for this cluster
                 if(present(sub_dimensions)) then
-                    similarity_matrix(:nlive,:nlive) =&
-                        calculate_similarity_matrix(RTI%live(sub_dimensions,:nlive,i_cluster))
+                    points(:nDims, :nlive) =&
+                        RTI%live(sub_dimensions,:nlive,i_cluster)
                 else 
-                    similarity_matrix(:nlive,:nlive) =&
-                        calculate_similarity_matrix(RTI%live(settings%h0:settings%h1,:nlive,i_cluster))
+                    points(:nDims, :nlive) =&
+                        RTI%live(settings%h0:settings%h1,:nlive,i_cluster)
                 end if
 
-                clusters(:nlive) = NN_clustering(similarity_matrix(:nlive,:nlive),num_clusters)
+                clusters(:nlive) = cluster(points(:nDims, :nlive))
+
+                ! default to KNN clustering
+                if (any(clusters(:nlive)<=0)) then
+                    clusters(:nlive) = NN_clustering(&
+                        calculate_distance2_matrix(points(:nDims, :nlive)))
+                end if
+                num_clusters = maxval(clusters(:nlive))
 
                 ! Do clustering on this 
                 if ( num_clusters>1 ) then
