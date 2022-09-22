@@ -336,6 +336,23 @@ def run(loglikelihood, nDims, **kwargs):
             The current log-evidence estimate
         logZerr: float
             The current log-evidence error estimate
+
+    cluster: function
+        This function clusters a subset of the live points.
+        (Default: Use the native KNN clustering by returning zeros )
+
+        Parameters
+        ----------
+        points: numpy.array
+            positions of points. Shape (nDims, nPoints)
+
+        Returns
+        -------
+        cluster_list: array-like
+            cluster labels.  Must start from 0. All clusters must have at least
+            one point, so that max(cluster_list)-1 gives the number of clusters
+            found.  Length nPoints.
+
         
     nlive: int
         (Default: nDims*25)
