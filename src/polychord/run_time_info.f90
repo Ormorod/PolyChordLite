@@ -209,7 +209,7 @@ module run_time_module
     end subroutine initialise_run_time_info
 
     function update_evidence(RTI,p) result(logweight)
-        use utils_module, only: logsumexp,logincexp
+        use utils_module, only: logsumexp,logincexp, logsubexp
         implicit none
 
         !> The variable containing all of the runtime information
@@ -223,6 +223,8 @@ module run_time_module
 
         ! The logweight of the deleted point
         real(dp) :: logweight
+        
+        real(dp) :: my_error
 
         ! Iterator
         integer :: q
@@ -292,6 +294,10 @@ module run_time_module
                 RTI%logXpXq(q,p) = RTI%logXpXq(q,p) + lognp - lognp1
             end if
         end do
+
+        my_error = logsubexp(RTI%logZ2 , 2*RTI%logZ)
+
+        PRINT *, my_error
 
     end function update_evidence
 
