@@ -264,6 +264,21 @@ module random_module
 
     ! ===========================================================================================
 
+    function random_power_law(np)
+        implicit none
+
+        integer, intent(in) :: np
+        real(dp) :: x
+
+        real(dp) :: random_power_law
+
+        call random_number(x)
+        random_power_law = x**(1/np)
+
+    end function random_power_law
+
+    ! ===========================================================================================
+
 
     !>  Random direction vector
     !!

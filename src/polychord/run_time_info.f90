@@ -76,6 +76,8 @@ module run_time_module
 
         !> Local volume estimate
         real(dp), allocatable, dimension(:)   :: logXp
+        !> Local volume simulation
+        real(dp), allocatable, dimension(:)   :: logXpsim
         !> Volume at last update
         real(dp)                              :: logX_last_update
         !> global evidence volume cross correlation
@@ -139,6 +141,7 @@ module run_time_module
             RTI%logZp(1),                                               &
             RTI%logZp_dead(0),                                          &
             RTI%logXp(1),                                               &
+            RTI%logXpsim(1),                                            &
             RTI%logZXp(1),                                              &
             RTI%logZp2(1),                                              &
             RTI%logZp2_dead(0),                                         &
@@ -171,6 +174,7 @@ module run_time_module
 
         ! All volumes set to 1
         RTI%logXp=0d0
+        RTI%logXpsim=0d0
         RTI%logXpXq=0d0
         RTI%logX_last_update = 0d0
 
@@ -210,6 +214,7 @@ module run_time_module
 
     function update_evidence(RTI,p) result(logweight)
         use utils_module, only: logsumexp,logincexp
+        use random_module, only: random_power_law
         implicit none
 
         !> The variable containing all of the runtime information
@@ -248,6 +253,8 @@ module run_time_module
         call logincexp( RTI%logZp(p) , RTI%logXp(p)+logL-lognp1  )
         ! Local volume
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
+        ! TODO draw t from power law distribution
+        RTI%logXpsim(p) = RTI%logXpsim(p) + log(random_power_law(RTI%nlive(p)))
 
 
         ! Global evidence error
@@ -291,6 +298,10 @@ module run_time_module
                 RTI%logXpXq(p,q) = RTI%logXpXq(p,q) + lognp - lognp1
                 RTI%logXpXq(q,p) = RTI%logXpXq(q,p) + lognp - lognp1
             end if
+        end do
+
+        do q=1, RTI%ncluster
+            print *, RTI%logXpXq(p, q) / RTI%logXp(p) / RTI%logXp(q)
         end do
 
     end function update_evidence
