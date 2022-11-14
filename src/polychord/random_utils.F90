@@ -281,14 +281,14 @@ module random_module
 
     subroutine random_stdgamma_alpha_ge_1(alpha, x)
         implicit none
-        real,intent(in) :: alpha
-        real,intent(out) :: x
-        real :: y,t,u1,u2
+        real(dp),intent(in) :: alpha
+        real(dp),intent(out) :: x
+        real(dp) :: y,t,u1,u2
         do
             call random_number(u1)
             y = -log(u1)
             t = (y/exp(y-1))**(alpha-1)
-            random_number(u2)
+            call random_number(u2)
             if(u2 <= t) then
                 x = alpha*y
                 exit
@@ -300,9 +300,9 @@ module random_module
 
     subroutine random_stdgamma(alpha, x)
         implicit none
-        real,intent(in) :: alpha
-        real,intent(out) :: x
-        real :: g,u
+        real(dp),intent(in) :: alpha
+        real(dp),intent(out) :: x
+        real(dp) :: g,u
         if(alpha<=0) then
             stop "alpha<=0"
         else if(alpha<1) then
@@ -318,25 +318,25 @@ module random_module
 
     subroutine random_gamma(alpha,beta,x)
         implicit none
-        real,intent(in) :: alpha,beta
-        real,intent(out) :: x
+        real(dp),intent(in) :: alpha,beta
+        real(dp),intent(out) :: x
         call random_stdgamma(alpha,x)
         x = x*beta
     end subroutine random_gamma
 
     ! ===========================================================================================
 
-    function dirichlet(alpha)
+    function dirichlet(alpha) result(y)
         implicit none
-        real(dp), dimension(:) :: alpha
+        real(dp),intent(in),dimension(:) :: alpha
 
-        real(dp), dimension(size(alpha)) :: y
+        real(dp),dimension(size(alpha)) :: y
         integer :: i
 
         do i = 1, size(alpha)
-            call random_gamma(alpha(i), 1.0, y(i))
+            call random_gamma(alpha(i), 1.d0, y(i))
         end do
-        dirichlet = y/sum(y)
+        y = y/sum(y)
     end function
 
 

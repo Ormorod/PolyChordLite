@@ -301,7 +301,7 @@ module run_time_module
         end do
 
         do q=1, RTI%ncluster
-            print *, RTI%logXpXq(p, q) / RTI%logXp(p) / RTI%logXp(q)
+            print *, exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))
         end do
 
     end function update_evidence
