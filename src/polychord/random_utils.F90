@@ -268,9 +268,9 @@ module random_module
         implicit none
 
         integer, intent(in) :: np
-        real(dp) :: x
-
         real(dp) :: random_power_law
+        
+        real(dp) :: x
 
         call random_number(x)
         random_power_law = x**(1/np)

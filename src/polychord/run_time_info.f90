@@ -215,6 +215,7 @@ module run_time_module
     function update_evidence(RTI,p) result(logweight)
         use utils_module, only: logsumexp,logincexp
         use random_module, only: random_power_law
+        ! use random_module, only: bernoulli_trial
         implicit none
 
         !> The variable containing all of the runtime information
@@ -238,6 +239,8 @@ module run_time_module
         real(dp) :: lognp1
         real(dp) :: lognp2
 
+        real(dp) :: t
+
         logL  = RTI%logLp(p)
 
         lognp = log( RTI%nlive(p) + 0d0 )
@@ -254,7 +257,9 @@ module run_time_module
         ! Local volume
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
-        RTI%logXpsim(p) = RTI%logXpsim(p) + log(random_power_law(RTI%nlive(p)))
+        t = random_power_law(RTI%nlive(p))
+        print *, "t = ", t
+        RTI%logXpsim(p) = RTI%logXpsim(p) + log(t)
 
 
         ! Global evidence error
@@ -301,7 +306,11 @@ module run_time_module
         end do
 
         do q=1, RTI%ncluster
-            print *, exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))
+            if (q/=p) then
+                print *, exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))
+            end if
+            print *, "mean     ", RTI%logXp(q)
+            print *, "simulated", RTI%logXpsim(q)
         end do
 
     end function update_evidence
@@ -315,6 +324,7 @@ module run_time_module
         use settings_module, only: program_settings
         use utils_module, only: logsumexp,logaddexp
         use array_module, only: reallocate,add_point
+        use random_module, only: dirichlet
         implicit none
 
         type(program_settings), intent(in) :: settings  !> Program settings
@@ -361,6 +371,8 @@ module run_time_module
         real(dp) :: logn
         real(dp) :: logn1
         real(dp) :: logXp
+        real(dp) :: logXpsim
+        real(dp), dimension(num_new_clusters) :: new_volumes
         real(dp) :: logZp
         real(dp) :: logZp2
         real(dp), dimension(RTI%ncluster-1) :: logXpXq
@@ -388,6 +400,7 @@ module run_time_module
 
         ! Define some useful variables
         logXp  = RTI%logXp(p)
+        logXpsim = RTI%logXpsim(p)
         logXp2 = RTI%logXpXq(p,p)
         logZp  = RTI%logZp(p)
         logZp2 = RTI%logZp2(p)
@@ -417,6 +430,7 @@ module run_time_module
 
         ! Reallocate the evidence arrays 
         call reallocate(RTI%logXp,   RTI%ncluster,old_save,old_target)
+        call reallocate(RTI%logXpsim,RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZXp,  RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp,   RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp2,  RTI%ncluster,old_save,old_target)
@@ -485,6 +499,10 @@ module run_time_module
         RTI%logZp2(new_target) = logZp2 + logni + logni1 - logn - logn1
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
+        new_volumes = dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0)
+        print *, "successfully called dirichlet"
+        RTI%logXpsim(new_target) = logXp + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+        print *, "dirichlet done"
 
         ! Initialise the volume cross correlations
         if(num_old_clusters>0) then
