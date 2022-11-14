@@ -279,6 +279,69 @@ module random_module
 
     ! ===========================================================================================
 
+    subroutine random_stdgamma_alpha_ge_1(alpha, x)
+        implicit none
+        real,intent(in) :: alpha
+        real,intent(out) :: x
+        real :: y,t,u1,u2
+        do
+            call random_number(u1)
+            y = -log(u1)
+            t = (y/exp(y-1))**(alpha-1)
+            random_number(u2)
+            if(u2 <= t) then
+                x = alpha*y
+                exit
+            end if
+        end do
+    end subroutine random_stdgamma_alpha_ge_1
+
+    ! ===========================================================================================
+
+    subroutine random_stdgamma(alpha, x)
+        implicit none
+        real,intent(in) :: alpha
+        real,intent(out) :: x
+        real :: g,u
+        if(alpha<=0) then
+            stop "alpha<=0"
+        else if(alpha<1) then
+            call random_stdgamma_alpha_ge_1(alpha+1.0,g)
+            call random_number(u)
+            x = g*u**(1.0/alpha)
+        else
+            call random_stdgamma_alpha_ge_1(alpha,x)
+        end if
+    end subroutine random_stdgamma
+
+    ! ===========================================================================================
+
+    subroutine random_gamma(alpha,beta,x)
+        implicit none
+        real,intent(in) :: alpha,beta
+        real,intent(out) :: x
+        call random_stdgamma(alpha,x)
+        x = x*beta
+    end subroutine random_gamma
+
+    ! ===========================================================================================
+
+    function dirichlet(alpha)
+        implicit none
+        real(dp), dimension(:) :: alpha
+
+        real(dp), dimension(size(alpha)) :: y
+        integer :: i
+
+        do i = 1, size(alpha)
+            call random_gamma(alpha(i), 1.0, y(i))
+        end do
+        dirichlet = y/sum(y)
+    end function
+
+
+    ! ===========================================================================================
+
 
     !>  Random direction vector
     !!
