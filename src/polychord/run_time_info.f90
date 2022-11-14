@@ -499,10 +499,7 @@ module run_time_module
         RTI%logZp2(new_target) = logZp2 + logni + logni1 - logn - logn1
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
-        new_volumes = dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0)
-        print *, "successfully called dirichlet"
         RTI%logXpsim(new_target) = logXp + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
-        print *, "dirichlet done"
 
         ! Initialise the volume cross correlations
         if(num_old_clusters>0) then
