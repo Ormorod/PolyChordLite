@@ -239,7 +239,7 @@ module run_time_module
         real(dp) :: lognp1
         real(dp) :: lognp2
 
-        real(dp) :: t
+        real(dp) :: logt
 
         logL  = RTI%logLp(p)
 
@@ -257,9 +257,9 @@ module run_time_module
         ! Local volume
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
-        t = random_power_law(RTI%nlive(p))
-        print *, "t = ", t
-        RTI%logXpsim(p) = RTI%logXpsim(p) + log(t)
+        logt = random_power_law(RTI%nlive(p))
+        print *, "logt = ", logt
+        RTI%logXpsim(p) = RTI%logXpsim(p) + logt
 
 
         ! Global evidence error

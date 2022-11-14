@@ -273,7 +273,7 @@ module random_module
         real(dp) :: x
 
         call random_number(x)
-        random_power_law = x**(1/np)
+        random_power_law = log(x)/np
 
     end function random_power_law
 
