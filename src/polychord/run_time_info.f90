@@ -258,7 +258,7 @@ module run_time_module
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
         logt = random_power_law(RTI%nlive(p))
-        print *, "logt = ", logt
+        ! print *, "logt = ", logt
         RTI%logXpsim(p) = RTI%logXpsim(p) + logt
 
 
@@ -307,10 +307,10 @@ module run_time_module
 
         do q=1, RTI%ncluster
             if (q/=p) then
-                print *, exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))
+                print *, "<X_pXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
             end if
-            print *, "mean     ", RTI%logXp(q)
-            print *, "simulated", RTI%logXpsim(q)
+            ! print *, "mean     ", RTI%logXp(q)
+            ! print *, "simulated", RTI%logXpsim(q)
         end do
 
     end function update_evidence
