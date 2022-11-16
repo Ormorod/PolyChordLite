@@ -608,6 +608,7 @@ module run_time_module
 
             ! Reallocate the evidence arrays 
             call reallocate(RTI%logXp,   new_size1=RTI%ncluster,save_indices1=indices)
+            call reallocate(RTI%logXpsim,new_size1=RTI%ncluster,save_indices1=indices)
             call reallocate(RTI%logZXp,  new_size1=RTI%ncluster,save_indices1=indices)
             call reallocate(RTI%logZp,   new_size1=RTI%ncluster,save_indices1=indices)
             call reallocate(RTI%logZp2,  new_size1=RTI%ncluster,save_indices1=indices)
