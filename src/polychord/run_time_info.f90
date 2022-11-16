@@ -499,7 +499,7 @@ module run_time_module
         RTI%logZp2(new_target) = logZp2 + logni + logni1 - logn - logn1
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
-        RTI%logXpsim(new_target) = logXp + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+        RTI%logXpsim(new_target) = RTI%logXpsim + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
 
         ! Initialise the volume cross correlations
         if(num_old_clusters>0) then
