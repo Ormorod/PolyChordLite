@@ -77,7 +77,7 @@ module run_time_module
         !> Local volume estimate
         real(dp), allocatable, dimension(:)   :: logXp
         !> Local volume simulation
-        real(dp), allocatable, dimension(:)   :: logXpsim
+        real(dp), allocatable, dimension(:,:)   :: logXpsim
         !> Volume at last update
         real(dp)                              :: logX_last_update
         !> global evidence volume cross correlation
@@ -141,7 +141,7 @@ module run_time_module
             RTI%logZp(1),                                               &
             RTI%logZp_dead(0),                                          &
             RTI%logXp(1),                                               &
-            RTI%logXpsim(1),                                            &
+            RTI%logXpsim(100,1),                                        &
             RTI%logZXp(1),                                              &
             RTI%logZp2(1),                                              &
             RTI%logZp2_dead(0),                                         &
@@ -232,6 +232,7 @@ module run_time_module
 
         ! Iterator
         integer :: q
+        integer :: i
 
         ! Temporary variables for notational ease
         real(dp),parameter :: log2 = log(2d0)
@@ -257,9 +258,11 @@ module run_time_module
         ! Local volume
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
-        logt = random_power_law(RTI%nlive(p))
-        ! print *, "logt = ", logt
-        RTI%logXpsim(p) = RTI%logXpsim(p) + logt
+        do i = 1, 100
+            logt = random_power_law(RTI%nlive(p))
+            ! print *, "logt = ", logt
+            RTI%logXpsim(i, p) = RTI%logXpsim(i, p) + logt
+        end do
 
 
         ! Global evidence error
@@ -305,13 +308,13 @@ module run_time_module
             end if
         end do
 
-        do q=1, RTI%ncluster
-            if (q/=p) then
-                print *, "<X_pXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
-            end if
+        ! do q=1, RTI%ncluster
+            ! if (q/=p) then
+                ! print *, "<X_pXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
+            ! end if
             ! print *, "mean     ", RTI%logXp(q)
             ! print *, "simulated", RTI%logXpsim(q)
-        end do
+        ! end do
 
     end function update_evidence
 
@@ -371,7 +374,7 @@ module run_time_module
         real(dp) :: logn
         real(dp) :: logn1
         real(dp) :: logXp
-        real(dp) :: logXpsim
+        real(dp), dimension(100) :: logXpsim
         real(dp), dimension(num_new_clusters) :: new_volumes
         real(dp) :: logZp
         real(dp) :: logZp2
@@ -400,7 +403,7 @@ module run_time_module
 
         ! Define some useful variables
         logXp  = RTI%logXp(p)
-        logXpsim = RTI%logXpsim(p)
+        logXpsim = RTI%logXpsim(:,p)
         logXp2 = RTI%logXpXq(p,p)
         logZp  = RTI%logZp(p)
         logZp2 = RTI%logZp2(p)
@@ -430,7 +433,8 @@ module run_time_module
 
         ! Reallocate the evidence arrays 
         call reallocate(RTI%logXp,   RTI%ncluster,old_save,old_target)
-        call reallocate(RTI%logXpsim,RTI%ncluster,old_save,old_target)
+        ! not sure about this
+        call reallocate(RTI%logXpsim,100,RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZXp,  RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp,   RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp2,  RTI%ncluster,old_save,old_target)
@@ -499,7 +503,9 @@ module run_time_module
         RTI%logZp2(new_target) = logZp2 + logni + logni1 - logn - logn1
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
-        RTI%logXpsim(new_target) = RTI%logXpsim + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+        do i=1, 100
+            RTI%logXpsim(i, new_target) = logXpsim(i) + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+        end do
 
         ! Initialise the volume cross correlations
         if(num_old_clusters>0) then
@@ -608,7 +614,8 @@ module run_time_module
 
             ! Reallocate the evidence arrays 
             call reallocate(RTI%logXp,   new_size1=RTI%ncluster,save_indices1=indices)
-            call reallocate(RTI%logXpsim,new_size1=RTI%ncluster,save_indices1=indices)
+            ! this is a leap of faith
+            call reallocate(RTI%logXpsim,new_size2=RTI%ncluster,save_indices2=indices)
             call reallocate(RTI%logZXp,  new_size1=RTI%ncluster,save_indices1=indices)
             call reallocate(RTI%logZp,   new_size1=RTI%ncluster,save_indices1=indices)
             call reallocate(RTI%logZp2,  new_size1=RTI%ncluster,save_indices1=indices)
