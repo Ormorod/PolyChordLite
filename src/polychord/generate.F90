@@ -40,10 +40,12 @@ module generate_module
         real(dp), dimension(RTI%ncluster) :: probs
 
         ! 0) Calculate an array proportional to the volumes
+        i = random_integer(size(RTI%logXpsim, 1))
+        probs = RTI%logXpsim(i,:)
 
-        do i = 1, size(probs)
-            probs(i) = logsumexp(RTI%logXpsim(:,i))      ! prob_p = log( X_p )
-        end do
+        ! do i = 1, size(probs)
+            ! probs(i) = logsumexp(RTI%logXpsim(:,i))      ! prob_p = log( X_p )
+        ! end do
         probs = probs - logsumexp(probs)  ! prob_p = log( X_p/(sum_q X_q) )
         probs = exp(probs)                ! prob_p = X_p/(sum_q X_q)
 

@@ -375,7 +375,7 @@ module run_time_module
         real(dp) :: logn
         real(dp) :: logn1
         real(dp) :: logXp
-        real(dp), dimension(100) :: logXpsim
+        real(dp), dimension(size(RTI%logXpsim, 1)) :: logXpsim
         ! real(dp), dimension(num_new_clusters) :: new_volumes
         real(dp) :: logZp
         real(dp) :: logZp2
