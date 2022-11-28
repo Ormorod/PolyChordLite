@@ -261,7 +261,8 @@ module run_time_module
         do i = 1, 100
             logt = random_power_law(RTI%nlive(p))
             ! print *, "logt = ", logt
-            RTI%logXpsim(i, p) = RTI%logXpsim(i, p) + logt
+            ! RTI%logXpsim(i, p) = RTI%logXpsim(i, p) + logt
+            RTI%logXpsim(i, p) = RTI%logXp(p)
         end do
 
 
@@ -375,7 +376,7 @@ module run_time_module
         real(dp) :: logn1
         real(dp) :: logXp
         real(dp), dimension(100) :: logXpsim
-        real(dp), dimension(num_new_clusters) :: new_volumes
+        ! real(dp), dimension(num_new_clusters) :: new_volumes
         real(dp) :: logZp
         real(dp) :: logZp2
         real(dp), dimension(RTI%ncluster-1) :: logXpXq
@@ -504,7 +505,8 @@ module run_time_module
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
         do i=1, 100
-            RTI%logXpsim(i, new_target) = logXpsim(i) + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+            ! RTI%logXpsim(i, new_target) = logXpsim(i) + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
+            RTI%logXpsim(i, new_target) = logXpsim(i) + logni - logn
         end do
 
         ! Initialise the volume cross correlations

@@ -35,11 +35,15 @@ module generate_module
         real(dp), dimension(settings%nTotal) :: seed_point
 
         integer :: seed_choice
+        integer :: i
 
         real(dp), dimension(RTI%ncluster) :: probs
 
         ! 0) Calculate an array proportional to the volumes
-        probs = sum(RTI%logXpsim, 1)      ! prob_p = log( X_p )
+
+        do i = 1, size(probs)
+            probs(i) = logsumexp(RTI%logXpsim(:,i))      ! prob_p = log( X_p )
+        end do
         probs = probs - logsumexp(probs)  ! prob_p = log( X_p/(sum_q X_q) )
         probs = exp(probs)                ! prob_p = X_p/(sum_q X_q)
 
