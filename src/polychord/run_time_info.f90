@@ -515,10 +515,8 @@ module run_time_module
         end do
 
         ! n+1) sort out the new cluster labels
-        cluster_label = cluster_label * 2
         do i_cluster=1,num_new_clusters
-            RTI%cluster_labels(new_target(i_cluster)) = cluster_label
-            cluster_label = cluster_label * 2 + 1
+            RTI%cluster_labels(new_target(i_cluster)) = 2*cluster_label+i_cluster-1
         end do
 
     end subroutine add_cluster
