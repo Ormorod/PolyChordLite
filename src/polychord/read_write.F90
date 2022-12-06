@@ -249,7 +249,7 @@ module read_write_module
         call write_integers(RTI%i,                   "=== Minimum loglikelihood positions ===")                    
         call write_integers(RTI%nposterior_dead,     "=== Number of weighted posterior points in each dead cluster ===")
         call write_integers(RTI%nequals_dead,        "=== Number of equally weighted posterior points in each dead cluster ===")
-        call write_integers(RTI%cluster_labels,      "=== Labels for clusters for storing in left-child right-sibling tree ===")
+        call write_integers(RTI%cluster_labels,      "=== Labels for clusters stored in left-child right-sibling tree ===")
   
        ! write evidences
         call write_double(RTI%logZ,                  "=== global evidence -- log(<Z>) ===")                    
