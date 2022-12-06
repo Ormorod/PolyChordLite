@@ -262,7 +262,7 @@ module cluster_module
         type(run_time_info), intent(inout) :: RTI
         !> Dimensions to cluster on
         integer,dimension(:),optional,intent(in) :: sub_dimensions
-        integer :: the_fat_controller
+        integer :: i_am_the_fat_controller
 
         interface
             function cluster(points) result(cluster_list)
@@ -343,8 +343,8 @@ module cluster_module
         end do
 
         print *,"I got here"
-        do the_fat_controller=1, size(RTI%cluster_labels)
-            print *,RTI%cluster_labels(the_fat_controller)
+        do i_am_the_fat_controller=1, size(RTI%cluster_labels)
+            print *,RTI%cluster_labels(i_am_the_fat_controller)
         end do
     end function do_clustering
 
