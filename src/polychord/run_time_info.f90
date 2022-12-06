@@ -104,6 +104,9 @@ module run_time_module
         !> what to thin the posterior by
         real(dp) :: thin_posterior
 
+        !> unique labels for clusters
+        integer, allocatable, dimension(:) :: cluster_labels
+
     end type run_time_info
 
     contains
@@ -158,7 +161,8 @@ module run_time_module
             RTI%cholesky(settings%nDims,settings%nDims,1),              &
             RTI%covmat(settings%nDims,settings%nDims,1),                &
             RTI%num_repeats(size(settings%grade_dims)),                 &
-            RTI%nlike(size(settings%grade_dims))                        &
+            RTI%nlike(size(settings%grade_dims)),                       &
+            RTI%cluster_labels(1)                                       & 
             )
 
         ! All evidences set to logzero
@@ -204,6 +208,9 @@ module run_time_module
         RTI%maxlogweight_global = settings%logzero
 
         RTI%thin_posterior = 0d0
+
+        ! original cluster is labelled 1
+        RTI%cluster_labels = 1
 
 
     end subroutine initialise_run_time_info
@@ -316,6 +323,8 @@ module run_time_module
         integer,intent(in),dimension(:) :: cluster_list
         !> The number of new clusters
         integer,intent(in) :: num_new_clusters
+        ! Check for matches, then change according to the new label (something like j*2^new label + odd)
+        integer cluster_label
 
 
         !Iterators
@@ -383,6 +392,8 @@ module run_time_module
         logZXp = RTI%logZXp(p)
         logZpXp= RTI%logZpXp(p)
         logXpXq= [ RTI%logXpXq(p,:p-1) , RTI%logXpXq(p,p+1:) ]
+        ! Store cluster label of old cluster, as this will be modified to label the new clusters
+        cluster_label = RTI%cluster_labels(p)
 
 
 
@@ -399,6 +410,7 @@ module run_time_module
         call reallocate(RTI%nposterior,      new_size1=RTI%ncluster, save_indices1=old_save,target_indices1=old_target)
         call reallocate(RTI%equals,          new_size3=RTI%ncluster, save_indices3=old_save,target_indices3=old_target)
         call reallocate(RTI%nequals,         new_size1=RTI%ncluster, save_indices1=old_save,target_indices1=old_target)
+        call reallocate(RTI%cluster_labels,  RTI%ncluster,old_save,old_target)
 
         ! Reallocate the cholesky matrices
         call reallocate(RTI%cholesky, new_size3=RTI%ncluster, save_indices3=old_save,target_indices3=old_target)
@@ -502,6 +514,13 @@ module run_time_module
             RTI%posterior(settings%pos_l,:RTI%nposterior(new_target(i_cluster)),new_target(i_cluster)) = RTI%posterior(settings%pos_l,:RTI%nposterior(new_target(i_cluster)),new_target(i_cluster)) + RTI%logZp(new_target(i_cluster)) -logZp
         end do
 
+        ! n+1) sort out the new cluster labels
+        cluster_label = cluster_label * 2
+        do i_cluster=1,num_new_clusters
+            RTI%cluster_labels(new_target(i_cluster)) = cluster_label
+            cluster_label = cluster_label * 2 + 1
+        end do
+
     end subroutine add_cluster
 
     function delete_cluster(settings,RTI) 
@@ -575,6 +594,8 @@ module run_time_module
             call reallocate(RTI%nposterior,      new_size1=RTI%ncluster, save_indices1=indices)
             call reallocate(RTI%equals,          new_size3=RTI%ncluster, save_indices3=indices)
             call reallocate(RTI%nequals,         new_size1=RTI%ncluster, save_indices1=indices)
+            ! Let's just pray this is how it works
+            call reallocate(RTI%cluster_labels,  new_size1=RTI%ncluster, save_indices1=indices)
 
             ! Reallocate the cholesky matrices
             call reallocate(RTI%cholesky, new_size3=RTI%ncluster, save_indices3=indices)
