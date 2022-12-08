@@ -107,6 +107,9 @@ module run_time_module
         !> unique labels for clusters
         integer, allocatable, dimension(:) :: cluster_labels
 
+        !> labels of dead clusters
+        integer, allocatable, dimension(:) :: dead_cluster_labels
+
     end type run_time_info
 
     contains
@@ -162,7 +165,8 @@ module run_time_module
             RTI%covmat(settings%nDims,settings%nDims,1),                &
             RTI%num_repeats(size(settings%grade_dims)),                 &
             RTI%nlike(size(settings%grade_dims)),                       &
-            RTI%cluster_labels(1)                                       & 
+            RTI%cluster_labels(1),                                      & 
+            RTI%dead_cluster_labels(settings%nlive)                     &
             )
 
         ! All evidences set to logzero
@@ -803,6 +807,9 @@ module run_time_module
             call add_point(point,RTI%dead,RTI%ndead)
             if (RTI%ndead > size(RTI%logweights)) call reallocate(RTI%logweights,RTI%ndead*2)
             RTI%logweights(RTI%ndead) = settings%logzero
+            ! add cluster label
+            if (RTI%ndead > size(RTI%dead_cluster_labels)) call reallocate(RTI%dead_cluster_labels,RTI%ndead*2)
+            RTI%dead_cluster_labels(RTI%ndead) = RTI%cluster_labels(cluster_add)
         end if
 
     end function replace_point
@@ -828,6 +835,9 @@ module run_time_module
         call add_point(deleted_point,RTI%dead,RTI%ndead)                                 ! Add the deleted point to the dead points
         if (RTI%ndead > size(RTI%logweights)) call reallocate(RTI%logweights,RTI%ndead*2)
         RTI%logweights(RTI%ndead) = logweight                                            ! Add the logweight to the array
+        ! add cluster label
+        if (RTI%ndead > size(RTI%dead_cluster_labels)) call reallocate(RTI%dead_cluster_labels,RTI%ndead*2)
+        RTI%dead_cluster_labels(RTI%ndead) = RTI%cluster_labels(cluster_del)
 
         ! Calculate the posterior point and add it to the posterior stack
         posterior_point = calculate_posterior_point(settings,deleted_point,logweight,RTI%logZ,logsumexp(RTI%logXp))

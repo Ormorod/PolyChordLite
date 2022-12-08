@@ -250,6 +250,7 @@ module read_write_module
         call write_integers(RTI%nposterior_dead,     "=== Number of weighted posterior points in each dead cluster ===")
         call write_integers(RTI%nequals_dead,        "=== Number of equally weighted posterior points in each dead cluster ===")
         call write_integers(RTI%cluster_labels,      "=== Labels for clusters stored in left-child right-sibling tree ===")
+        call write_integers(RTI%dead_cluster_labels, "=== cluster labels of dead points ===")
   
        ! write evidences
         call write_double(RTI%logZ,                  "=== global evidence -- log(<Z>) ===")                    
@@ -433,6 +434,7 @@ module read_write_module
         call read_integers(RTI%nequals_dead,'-',RTI%ncluster_dead)
 
         call read_integers(RTI%cluster_labels,'-',RTI%ncluster)
+        call read_integers(RTI%dead_cluster_labels,'-',RTI%ndead)
 
         call read_double(RTI%logZ,'-')
         call read_double(RTI%logZ2,'-')
@@ -681,7 +683,7 @@ module read_write_module
 
 
     subroutine write_dead_points(settings,RTI)
-        use utils_module, only: DB_FMT,fmt_len,write_dead_unit, write_dead_birth_unit, write_dead_birth_cluster_unit
+        use utils_module, only: DB_FMT,INT_FMT,fmt_len,write_dead_unit, write_dead_birth_unit, write_dead_birth_cluster_unit
         use settings_module, only: program_settings 
         use run_time_module, only: run_time_info 
         implicit none
@@ -692,6 +694,7 @@ module read_write_module
         integer i_dead
 
         character(len=fmt_len) :: fmt_dbl
+        character(len=fmt_len) :: fmt_mix
 
         call check_directories(settings)
 
@@ -720,15 +723,15 @@ module read_write_module
         close(write_dead_birth_unit)
 
         ! new value is an integer
-        write(fmt_dbl,'("(",I0,A,")")') settings%nDims+settings%nDerived+3, DB_FMT
+        write(fmt_mix,'("(",I0,A,",",I0,A,")")') settings%nDims+settings%nDerived+2, DB_FMT, 1, INT_FMT
 
         open(write_dead_birth_cluster_unit,file=trim(dead_birth_cluster_file(settings)), action='write')
         do i_dead=1,RTI%ndead
-            write(write_dead_birth_cluster_unit,fmt_dbl) & 
+            write(write_dead_birth_cluster_unit,fmt_mix) & 
                 RTI%dead(settings%p0:settings%d1,i_dead), &
                 RTI%dead(settings%l0,i_dead), &
                 RTI%dead(settings%b0,i_dead), &
-                RTI%cluster_labels(cluster number????)
+                RTI%dead_cluster_labels(i_dead)
         end do 
         close(write_dead_birth_cluster_unit)
 
@@ -1213,7 +1216,7 @@ module read_write_module
 
         file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_dead-birth-cluster.txt'
 
-    end function dead_file
+    end function dead_birth_cluster_file
 
     function paramnames_file(settings) result(file_name)
         use settings_module, only: program_settings
