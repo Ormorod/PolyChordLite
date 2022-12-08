@@ -681,7 +681,7 @@ module read_write_module
 
 
     subroutine write_dead_points(settings,RTI)
-        use utils_module, only: DB_FMT,fmt_len,write_dead_unit, write_dead_birth_unit
+        use utils_module, only: DB_FMT,fmt_len,write_dead_unit, write_dead_birth_unit, write_dead_birth_cluster_unit
         use settings_module, only: program_settings 
         use run_time_module, only: run_time_info 
         implicit none
@@ -718,6 +718,19 @@ module read_write_module
                 RTI%dead(settings%b0,i_dead)
         end do
         close(write_dead_birth_unit)
+
+        ! new value is an integer
+        write(fmt_dbl,'("(",I0,A,")")') settings%nDims+settings%nDerived+3, DB_FMT
+
+        open(write_dead_birth_cluster_unit,file=trim(dead_birth_cluster_file(settings)), action='write')
+        do i_dead=1,RTI%ndead
+            write(write_dead_birth_cluster_unit,fmt_dbl) & 
+                RTI%dead(settings%p0:settings%d1,i_dead), &
+                RTI%dead(settings%l0,i_dead), &
+                RTI%dead(settings%b0,i_dead), &
+                RTI%cluster_labels(cluster number????)
+        end do 
+        close(write_dead_birth_cluster_unit)
 
 
     end subroutine write_dead_points
@@ -1190,6 +1203,17 @@ module read_write_module
         file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_dead-birth.txt'
 
     end function dead_birth_file
+
+    function dead_birth_cluster_file(settings) result(file_name)
+        use settings_module, only: program_settings
+        use utils_module,    only: STR_LENGTH
+        implicit none
+        type(program_settings), intent(in) :: settings
+        character(STR_LENGTH) :: file_name
+
+        file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_dead-birth-cluster.txt'
+
+    end function dead_file
 
     function paramnames_file(settings) result(file_name)
         use settings_module, only: program_settings
