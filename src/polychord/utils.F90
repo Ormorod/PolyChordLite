@@ -79,8 +79,11 @@ module utils_module
     !> unit for properties file
     integer, parameter :: properties_unit = 27
 
+    !> unit for writing live birth cluster file
+    integer, parameter :: write_live_birth_cluster_unit = 28
+
     !> unit for writing dead birth cluster file
-    integer, parameter :: write_dead_birth_cluster_unit = 28
+    integer, parameter :: write_dead_birth_cluster_unit = 29
 
     ! All series used to approximate F are computed with relative
     ! tolerance:
