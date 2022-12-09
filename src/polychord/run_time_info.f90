@@ -141,7 +141,7 @@ module run_time_module
             RTI%logZp(1),                                               &
             RTI%logZp_dead(0),                                          &
             RTI%logXp(1),                                               &
-            RTI%logXpsim(10000,1),                                        &
+            RTI%logXpsim(settings%num_Xp_simulations,1),                                        &
             RTI%logZXp(1),                                              &
             RTI%logZp2(1),                                              &
             RTI%logZp2_dead(0),                                         &
@@ -258,7 +258,7 @@ module run_time_module
         ! Local volume
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
-        do i = 1, 10000
+        do i = 1, size(RTI%logXpsim, 1)
             logt = random_power_law(RTI%nlive(p))
             ! print *, "logt = ", logt
             ! RTI%logXpsim(i, p) = RTI%logXpsim(i, p) + logt
@@ -435,7 +435,7 @@ module run_time_module
         ! Reallocate the evidence arrays 
         call reallocate(RTI%logXp,   RTI%ncluster,old_save,old_target)
         ! not sure about this
-        call reallocate(RTI%logXpsim,10000,RTI%ncluster,old_save,old_target)
+        call reallocate(RTI%logXpsim,settings%num_Xp_simulations,RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZXp,  RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp,   RTI%ncluster,old_save,old_target)
         call reallocate(RTI%logZp2,  RTI%ncluster,old_save,old_target)
@@ -504,7 +504,7 @@ module run_time_module
         RTI%logZp2(new_target) = logZp2 + logni + logni1 - logn - logn1
         RTI%logZpXp(new_target) = logZpXp + logni + logni1 - logn - logn1 
 
-        do i=1, 10000
+        do i=1, num_Xp_simulations
             ! RTI%logXpsim(i, new_target) = logXpsim(i) + log(dirichlet(RTI%nlive(new_target) + RTI%nphantom(new_target) + 0d0))
             RTI%logXpsim(i, new_target) = logXpsim(i) + logni - logn
         end do

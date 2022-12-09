@@ -145,6 +145,10 @@ module settings_module
 
         logical :: synchronous = .true.
 
+
+        ! Number of Xp simulations
+        integer :: num_Xp_simulations
+
     end type program_settings
 
     contains
@@ -234,6 +238,8 @@ module settings_module
 
         settings%nlives = settings%nlives(sort_doubles(settings%loglikes))
         settings%loglikes = settings%loglikes(sort_doubles(settings%loglikes))
+
+        settings%num_Xp_simulations = 10000
 
 
 

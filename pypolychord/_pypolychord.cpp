@@ -149,7 +149,7 @@ static PyObject *run_pypolychord(PyObject *, PyObject *args)
         
 
     if (!PyArg_ParseTuple(args,
-                "OOOOiiiiiiiiddidiiiiiiiiiiidissO!O!O!i:run",
+                "OOOOiiiiiiiiddidiiiiiiiiiiidissO!O!O!ii:run",
                 &temp_logl,
                 &temp_prior,
                 &temp_dumper,
@@ -187,7 +187,8 @@ static PyObject *run_pypolychord(PyObject *, PyObject *args)
                 &py_grade_dims,
                 &PyDict_Type,
                 &py_nlives,
-                &S.seed
+                &S.seed,
+                &S.num_Xp_simulations
                 )
             )
         return NULL;
