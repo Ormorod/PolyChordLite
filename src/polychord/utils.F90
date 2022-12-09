@@ -85,6 +85,9 @@ module utils_module
     !> unit for writing dead birth cluster file
     integer, parameter :: write_dead_birth_cluster_unit = 29
 
+    !> unit for writing cluster tree file
+    integer, parameter :: write_cluster_tree_unit = 30
+
     ! All series used to approximate F are computed with relative
     ! tolerance:
     real(dp) eps

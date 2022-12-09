@@ -939,6 +939,35 @@ module read_write_module
 
     end subroutine write_stats_file
 
+
+    subroutine write_cluster_tree_file(settings, RTI)
+        use settings_module, only: program_settings
+        use run_time_module, only: run_time_info
+        use utils_module, only: INT_FMT,write_cluster_tree_unit
+        implicit none
+
+        type(program_settings), intent(in) :: settings
+        type(run_time_info), intent(in) :: RTI
+
+        integer :: i
+
+        call check_directories(settings)
+
+        open(unit=write_cluster_tree_unit,file=trim(cluster_tree_file(settings)))
+
+        !! line child will contain the parent of that child
+        do i=1, size(RTI%parent)
+
+            write(write_cluster_tree_unit,trim('('//INT_FMT//')')) RTI%parent(i)
+
+        end do
+        
+        close(write_cluster_tree_unit)
+
+    end subroutine write_cluster_tree_file
+
+    
+
     function mean(RTI,settings) result(mu)
         use settings_module, only: program_settings
         use run_time_module, only: run_time_info
@@ -1277,5 +1306,17 @@ module read_write_module
         file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '.prior_info'
 
     end function prior_info_file
+
+    function cluster_tree_file(settings) result(file_name)
+        use settings_module, only: program_settings
+        use utils_module,    only: STR_LENGTH
+        implicit none
+        type(program_settings), intent(in) :: settings
+
+        character(STR_LENGTH) :: file_name
+
+        file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_cluster_tree.txt'
+
+    end function
 
 end module

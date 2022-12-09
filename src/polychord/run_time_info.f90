@@ -104,11 +104,17 @@ module run_time_module
         !> what to thin the posterior by
         real(dp) :: thin_posterior
 
-        !> unique labels for clusters
+        !> unique labels for live clusters
         integer, allocatable, dimension(:) :: cluster_labels
 
         !> labels of dead clusters
         integer, allocatable, dimension(:) :: dead_cluster_labels
+
+        !> next available cluster label
+        integer :: next_cluster_label
+
+        !> parent of each cluster
+        integer, allocatable, dimension(:) :: parent
 
     end type run_time_info
 
@@ -166,7 +172,8 @@ module run_time_module
             RTI%num_repeats(size(settings%grade_dims)),                 &
             RTI%nlike(size(settings%grade_dims)),                       &
             RTI%cluster_labels(1),                                      & 
-            RTI%dead_cluster_labels(settings%nlive)                     &
+            RTI%dead_cluster_labels(settings%nlive),                    &
+            RTI%parent(settings%nlive)                                  &
             )
 
         ! All evidences set to logzero
@@ -213,8 +220,10 @@ module run_time_module
 
         RTI%thin_posterior = 0d0
 
-        ! original cluster is labelled 1
-        RTI%cluster_labels = 1
+        ! original cluster is labelled 0
+        RTI%cluster_labels = 0
+        RTI%next_cluster_label = 1
+        RTI%parent = 0
 
 
     end subroutine initialise_run_time_info
@@ -344,6 +353,7 @@ module run_time_module
         integer, dimension(RTI%ncluster-1)   :: old_target
         integer, dimension(num_new_clusters) :: new_target
         integer                              :: num_old_clusters
+        integer, dimension(2)                :: child_parent_pair
 
         real(dp), dimension(size(RTI%live,1),RTI%nlive(p))     :: old_live
         integer :: old_nlive
@@ -519,10 +529,11 @@ module run_time_module
         end do
 
         ! n+1) sort out the new cluster labels
-        cluster_label = cluster_label * 2
         do i_cluster=1,num_new_clusters
-            RTI%cluster_labels(new_target(i_cluster)) = cluster_label
-            cluster_label = cluster_label * 2 + 1
+            RTI%cluster_labels(new_target(i_cluster)) = RTI%next_cluster_label
+            ! still need to make sure that RTI%parent is large enough
+            RTI%parent(RTI%next_cluster_label) = cluster_label
+            RTI%next_cluster_label = RTI%next_cluster_label + 1
         end do
 
     end subroutine add_cluster
