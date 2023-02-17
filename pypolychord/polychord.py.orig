@@ -713,8 +713,13 @@ def _make_resume_file(loglikelihood, **kwargs):
             recvbuf = None
         comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=0)
 
+<<<<<<< HEAD
         lives = np.reshape(sendbuf, (len(kwargs['cube_samples']), len(lives[0])))
+    except NameError:
+=======
+        lives = np.reshape(sendbuf, (len(settings.cube_samples), len(lives[0])))
     else:
+>>>>>>> master
         lives = np.array(lives)
 
     if rank == 0:
