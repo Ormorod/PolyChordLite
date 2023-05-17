@@ -943,22 +943,25 @@ module read_write_module
     subroutine write_cluster_tree_file(settings, RTI)
         use settings_module, only: program_settings
         use run_time_module, only: run_time_info
-        use utils_module, only: INT_FMT,write_cluster_tree_unit
+        use utils_module, only: DB_FMT,INT_FMT,fmt_len,write_cluster_tree_unit
         implicit none
 
         type(program_settings), intent(in) :: settings
         type(run_time_info), intent(in) :: RTI
+        character(len=fmt_len) :: fmt_tree
 
         integer :: i
 
         call check_directories(settings)
+        
+        write(fmt_tree,'("(",I0,A,",",I0,A,")")') 1, INT_FMT, 1, DB_FMT
 
         open(unit=write_cluster_tree_unit,file=trim(cluster_tree_file(settings)))
 
         !! line child will contain the parent of that child
         do i=1, size(RTI%parent)
 
-            write(write_cluster_tree_unit,trim('('//INT_FMT//')')) RTI%parent(i)
+            write(write_cluster_tree_unit,fmt_tree) RTI%parent(i), RTI%cluster_fraction(i)
 
         end do
         

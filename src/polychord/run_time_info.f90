@@ -116,6 +116,9 @@ module run_time_module
         !> parent of each cluster
         integer, allocatable, dimension(:) :: parent
 
+        !> splitting fraction of each cluster
+        real(dp), allocatable, dimension(:) :: cluster_fraction
+
     end type run_time_info
 
     contains
@@ -173,7 +176,8 @@ module run_time_module
             RTI%nlike(size(settings%grade_dims)),                       &
             RTI%cluster_labels(1),                                      & 
             RTI%dead_cluster_labels(settings%nlive),                    &
-            RTI%parent(settings%nlive)                                  &
+            RTI%parent(settings%nlive),                                 &
+            RTI%cluster_fraction(settings%nlive)                        &
             )
 
         ! All evidences set to logzero
@@ -224,6 +228,7 @@ module run_time_module
         RTI%cluster_labels = 0
         RTI%next_cluster_label = 1
         RTI%parent = 0
+        RTI%cluster_fraction = 1
 
 
     end subroutine initialise_run_time_info
@@ -533,6 +538,10 @@ module run_time_module
             RTI%cluster_labels(new_target(i_cluster)) = RTI%next_cluster_label
             ! still need to make sure that RTI%parent is large enough
             RTI%parent(RTI%next_cluster_label) = cluster_label
+
+            ! record fraction of live points put in that cluster
+            RTI%cluster_fraction(RTI%next_cluster_label) = exp(logni(i_cluster) - logn)
+
             RTI%next_cluster_label = RTI%next_cluster_label + 1
         end do
 
