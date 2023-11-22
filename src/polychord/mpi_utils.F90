@@ -368,69 +368,6 @@ module mpi_module
 
 
 
-    !============== Scattering/gathering live points ====================
-    ! This a process by which the administrator 'scatters' live points
-    ! to all workers, and gathers them back again.
-    !
-    ! This is used in the initial generation of live points.
-    ! scatter_points:
-    !    root     ---->   all workers
-    !
-    ! gather_points:
-    ! all workers ---->   root
-
-    !> Administrator scatters live points to all workers.
-    !!
-    !! This a process by which a worker node 'throws' a point to the root
-
-    subroutine scatter_points(live_points,live_point,mpi_information)
-        implicit none
-
-        real(dp),intent(in),dimension(:) :: live_points !> live points to throw
-        real(dp),intent(out),dimension(:) :: live_point !> live point to catch
-        type(mpi_bundle), intent(in) :: mpi_information
-
-        call MPI_SCATTER(                &!
-            live_points,                 &!
-            size(live_point),            &!
-            MPI_DOUBLE_PRECISION,        &!
-            live_point,                  &!
-            size(live_point),            &!
-            MPI_DOUBLE_PRECISION,        &!
-            mpi_information%root,        &!
-            mpi_information%communicator,&!
-            mpierror                     &!
-            )
-
-    end subroutine scatter_points
-
-
-    !> Administrator gathers live points from all workers.
-    !!
-    !! This a process by which the administrator node 'gathers'
-    !! all points to the root.
-
-
-    subroutine gather_points(live_points,live_point,mpi_information)
-        implicit none
-
-        real(dp),intent(in),dimension(:) :: live_point   !> live point to throw
-        real(dp),intent(out),dimension(:) :: live_points !> live points to catch
-        type(mpi_bundle), intent(in) :: mpi_information
-
-        call MPI_GATHER(                 &!
-            live_point,                  &!
-            size(live_point),            &!
-            MPI_DOUBLE_PRECISION,        &!
-            live_points,                 &!
-            size(live_point),            &!
-            MPI_DOUBLE_PRECISION,        &!
-            mpi_information%root,        &!
-            mpi_information%communicator,&!
-            mpierror                     &!
-            )
-
-    end subroutine gather_points
 
 
 
@@ -755,6 +692,70 @@ module mpi_module
         end if
 
     end function more_points_needed
+
+    !> Request specific live points
+    ! administrator                     ----> worker
+    ! request_this_point(live_point)   point_needed -> true
+    ! no_more_points (defined above)   point_needed -> false
+    ! 
+
+    !> Request this point
+    !!
+    !! This subroutine is used by the root node to request a specific live point
+    subroutine request_this_point(live_point,mpi_information,worker_id)
+        implicit none
+        type(mpi_bundle), intent(in) :: mpi_information
+        integer, intent(in) :: worker_id         !> Worker to request a new point from
+        real(dp), intent(in), dimension(:) :: live_point !> The live point to be sent
+
+
+        call MPI_SEND(                   &
+            live_point,                  &! not sending anything
+            size(live_point),            &!
+            MPI_DOUBLE_PRECISION,        &! sending doubles
+            worker_id,                   &! process id to send to
+            tag_gen_request,             &! continuation tag
+            mpi_information%communicator,&! mpi handle
+            mpierror                     &! error flag
+            )
+
+    end subroutine request_this_point
+
+    !> See if another point is needed
+    !!
+    !! This subroutine is used by the root node to request a specific live point
+    function point_needed(live_point,mpi_information)
+        use abort_module
+        implicit none
+        type(mpi_bundle), intent(in) :: mpi_information
+        real(dp),intent(out),dimension(:) :: live_point !> live point to throw
+
+        integer, dimension(MPI_STATUS_SIZE) :: mpistatus  ! status identifier
+
+        logical :: point_needed !> Whether we need more points or not
+
+        call MPI_RECV(                   &!
+            live_point,                  &!
+            size(live_point),            &!
+            MPI_DOUBLE_PRECISION,        &!
+            mpi_information%root,        &!
+            MPI_ANY_TAG,                 &!
+            mpi_information%communicator,&!
+            mpistatus,                   &!
+            mpierror                     &!
+            )
+
+        ! If we've recieved a kill signal, then exit this loop
+        if(mpistatus(MPI_TAG) == tag_gen_stop ) then
+            point_needed = .false.
+        else if(mpistatus(MPI_TAG) == tag_gen_request) then
+            point_needed = .true.
+        else
+            call halt_program('generate error: unrecognised tag')
+        end if
+
+    end function point_needed
+
 
 #endif
 
