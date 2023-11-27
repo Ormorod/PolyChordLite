@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypolychord"
-dynamic = ["version"]
+dynamic = ["version", "description", "license", "authors", "dependencies"]
 
 [project.optional-dependencies]
 cube_samples = ["fortranformat"]
