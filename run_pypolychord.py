@@ -42,12 +42,10 @@ def dumper(live, dead, logweights, logZ, logZerr):
 #| Initialise the settings
 
 settings = PolyChordSettings(nDims, nDerived)
-settings.file_root = f'gaussian_{sys.argv[1]}'
+settings.file_root = 'gaussian'
 settings.nlive = 200
 settings.do_clustering = True
 settings.read_resume = False
-settings.seed = 1
-settings.nprior = 1000
 
 #| Run PolyChord
 
