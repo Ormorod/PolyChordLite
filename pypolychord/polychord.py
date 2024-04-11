@@ -1,5 +1,6 @@
 from pypolychord.output import PolyChordOutput
-import os
+from pathlib import Path
+import warnings
 import _pypolychord
 import numpy as np
 import anesthetic
@@ -55,9 +56,7 @@ def run_polychord(loglikelihood, nDims, nDerived, settings,
         (logL, phi): (float, array-like)
             return is a 2-tuple of the log-likelihood (logL) and the derived
             parameters (phi). phi length nDerived.
-
-        Returns
-        -------
+        OR
         logL: float
             log-likelihood
 
@@ -126,7 +125,7 @@ def run_polychord(loglikelihood, nDims, nDerived, settings,
 
     Returns
     -------
-    None. (in Python)
+    pypolychord.output.PolyChordOutput
 
     All output is currently produced in the form of text files in <base_dir>
     directory. If you would like to contribute to pypolychord and improve this,
@@ -174,17 +173,8 @@ def run_polychord(loglikelihood, nDims, nDerived, settings,
     except ImportError:
         rank = 0
 
-    try:
-        if rank == 0:
-            os.makedirs(settings.base_dir)
-    except OSError:
-        pass
-        
-    try:
-        if rank == 0:
-            os.makedirs(settings.cluster_dir)
-    except OSError:
-        pass
+    if rank == 0:
+        Path(settings.cluster_dir).mkdir(parents=True, exist_ok=True)
 
     if settings.cube_samples is not None:
         _legacy_make_resume_file(settings, loglikelihood, prior)
@@ -192,7 +182,11 @@ def run_polychord(loglikelihood, nDims, nDerived, settings,
         settings.read_resume=True
 
     def wrap_loglikelihood(theta, phi):
-        logL, phi[:] = loglikelihood(theta)
+        logL = loglikelihood(theta)
+        try:
+            logL, phi[:] = logL
+        except TypeError:
+            pass
         return logL
 
     def wrap_prior(cube, theta):
@@ -287,12 +281,9 @@ def run(loglikelihood, nDims, **kwargs):
         (logL, phi): (float, array-like)
             return is a 2-tuple of the log-likelihood (logL) and the derived
             parameters (phi). phi length nDerived.
-
-        Returns
-        -------
+        OR
         logL: float
             log-likelihood
-        TODO: what about []? I don't think it can be omitted from the return of loglikelihood.
 
     nDims: int
         Dimensionality of the model, i.e. the number of physical parameters.
@@ -353,7 +344,6 @@ def run(loglikelihood, nDims, **kwargs):
             one point, so that max(cluster_list)-1 gives the number of clusters
             found.  Length nPoints.
 
-        
     nlive: int
         (Default: nDims*25)
         The number of live points.
@@ -471,9 +461,13 @@ def run(loglikelihood, nDims, **kwargs):
         (Default: 'test')
         Root name of the files produced.
 
+    cluster_dir : string
+        (Default: 'clusters')
+        Where to store clustering files. (base_dir/cluster_dir)
+
     grade_frac : List[float]
         (Default: [1])
-        The amount of time to spend in each speed. 
+        The amount of time to spend in each speed.
         If any of grade_frac are <= 1, then polychord will time each sub-speed,
         and then choose num_repeats for the number of slowest repeats, and
         spend the proportion of time indicated by grade_frac. Otherwise this
@@ -489,12 +483,14 @@ def run(loglikelihood, nDims, **kwargs):
         between loglike contours and nlive.
         You should still set nlive to be a sensible number, as this indicates
         how often to update the clustering, and to define the default value.
+
     seed : positive int
         (Default: system time in milliseconds)
         Choose the seed to seed the random number generator.
         Note **Positive seeds only**
         a negative seed indicates that you should use the system time in
         milliseconds
+
     cube_samples: array-like
         (Default: None)
         samples from the unit hypercube to start nested sampling from. This is
@@ -505,6 +501,7 @@ def run(loglikelihood, nDims, **kwargs):
         x3 < 1, if one did not want to use SortedUniformPrior.
         Only available in Python interface.
         shape (:, nDims)
+
     paramnames: List [(string,string)]
         (Default: None)
         Mapping of label:Tex for all parameters in order. E.g. for two physical
@@ -513,8 +510,14 @@ def run(loglikelihood, nDims, **kwargs):
 
     Returns
     -------
-    
-    anesthetic.NestedSamples(root=<base_dir>/<file_root>)
+
+    anesthetic.NestedSamples
+
+    All output is currently produced in the form of text files in <base_dir>,
+    anesthetic can read these in directly:
+
+    >>> import anesthetic
+    >>> anesthetic.read_chains("base_dir/file_root")
 
     In general the contents of <base_dir> is a set of getdist compatible files.
 
@@ -588,30 +591,29 @@ def run(loglikelihood, nDims, **kwargs):
         'synchronous': True,
         'base_dir': 'chains',
         'file_root': 'test',
+        'cluster_dir': 'clusters',
         'grade_dims': [nDims],
         'nlives': {},
         'seed': -1,
     }
-    default_kwargs['grade_frac'] = [1.0]*len(default_kwargs['grade_dims'])
+    default_kwargs['grade_frac'] = ([1.0]*len(default_kwargs['grade_dims'])
+                                    if 'grade_dims' not in kwargs else
+                                    [1.0]*len(kwargs['grade_dims']))
 
-
-    if not set(kwargs.keys()) <= set(default_kwargs.keys()):
-        raise TypeError(f"{__name__} got unknown keyword arguments {kwargs.keys() - default_kwargs.keys()}")
+    if not kwargs.keys() <= default_kwargs.keys():
+        raise TypeError(f"{__name__} got unknown keyword arguments: "
+                        f"{kwargs.keys() - default_kwargs.keys()}")
     default_kwargs.update(kwargs)
     kwargs = default_kwargs
 
-
-    try:
-        if rank == 0:
-            os.makedirs(kwargs['base_dir'])
-    except OSError:
-        pass
-        
-    try:
-        if rank == 0:
-            os.makedirs(os.path.join(kwargs['base_dir'], 'clusters'))
-    except OSError:
-        pass
+    if rank == 0:
+        (Path(kwargs['base_dir']) / kwargs['cluster_dir']).mkdir(
+            parents=True, exist_ok=True)
+        if paramnames is not None:
+            PolyChordOutput.make_paramnames_file(
+                paramnames,
+                Path(kwargs['base_dir']) /
+                    (kwargs['file_root'] + ".paramnames"))
 
     if 'cube_samples' in kwargs:
         _make_resume_file(loglikelihood, kwargs['prior'], **kwargs)
@@ -619,7 +621,11 @@ def run(loglikelihood, nDims, **kwargs):
         kwargs['read_resume'] = True
 
     def wrap_loglikelihood(theta, phi):
-        logL, phi[:] = loglikelihood(theta)
+        logL = loglikelihood(theta)
+        try:
+            logL, phi[:] = logL
+        except TypeError:
+            pass
         return logL
 
     def wrap_prior(cube, theta):
@@ -629,60 +635,68 @@ def run(loglikelihood, nDims, **kwargs):
         cluster_list[:] = kwargs["cluster"](points) + 1
 
     kwargs['grade_dims'] = [int(d) for d in list(kwargs['grade_dims'])]
-    kwargs['nlives'] = {float(logL):int(nlive) for logL, nlive in kwargs['nlives'].items()}
+    if sum(kwargs['grade_dims']) != nDims:
+        raise ValueError(f"grade_dims ({sum(kwargs['grade_dims'])}) "
+                         f"must sum to nDims ({nDims})")
+    kwargs['nlives'] = {float(logL): int(nlive)
+                        for logL, nlive in kwargs['nlives'].items()}
 
     # Run polychord from module library
     _pypolychord.run(wrap_loglikelihood,
-        wrap_prior,
-        kwargs['dumper'],
-        wrap_cluster,
-        nDims,
-        kwargs['nDerived'],
-        kwargs['nlive'],
-        kwargs['num_repeats'],
-        kwargs['nprior'],
-        kwargs['nfail'], 
-        kwargs['do_clustering'],
-        kwargs['feedback'],
-        kwargs['precision_criterion'],
-        kwargs['logzero'],
-        kwargs['max_ndead'],
-        kwargs['boost_posterior'],
-        kwargs['posteriors'],
-        kwargs['equals'],
-        kwargs['cluster_posteriors'],
-        kwargs['write_resume'],
-        kwargs['write_paramnames'],
-        kwargs['read_resume'],
-        kwargs['write_stats'],
-        kwargs['write_live'],
-        kwargs['write_dead'],
-        kwargs['write_prior'],
-        kwargs['maximise'],
-        kwargs['compression_factor'],
-        kwargs['synchronous'],
-        kwargs['base_dir'],
-        kwargs['file_root'],
-        kwargs['grade_frac'],
-        kwargs['grade_dims'],
-        kwargs['nlives'], 
-        kwargs['seed'],
-    )
+                     wrap_prior,
+                     kwargs['dumper'],
+                     wrap_cluster,
+                     nDims,
+                     kwargs['nDerived'],
+                     kwargs['nlive'],
+                     kwargs['num_repeats'],
+                     kwargs['nprior'],
+                     kwargs['nfail'],
+                     kwargs['do_clustering'],
+                     kwargs['feedback'],
+                     kwargs['precision_criterion'],
+                     kwargs['logzero'],
+                     kwargs['max_ndead'],
+                     kwargs['boost_posterior'],
+                     kwargs['posteriors'],
+                     kwargs['equals'],
+                     kwargs['cluster_posteriors'],
+                     kwargs['write_resume'],
+                     kwargs['write_paramnames'],
+                     kwargs['read_resume'],
+                     kwargs['write_stats'],
+                     kwargs['write_live'],
+                     kwargs['write_dead'],
+                     kwargs['write_prior'],
+                     kwargs['maximise'],
+                     kwargs['compression_factor'],
+                     kwargs['synchronous'],
+                     kwargs['base_dir'],
+                     kwargs['file_root'],
+                     kwargs['grade_frac'],
+                     kwargs['grade_dims'],
+                     kwargs['nlives'],
+                     kwargs['seed'],
+                     )
 
     if 'cube_samples' in kwargs:
         kwargs['read_resume'] = read_resume
 
-    if paramnames is not None:
-        PolyChordOutput.make_paramnames_file(paramnames, os.path.join(kwargs['base_dir'], kwargs['file_root']+".paramnames"))
-
-    return anesthetic.read_chains(os.path.join(kwargs['base_dir'], kwargs['file_root']))
+    try:
+        import anesthetic
+    except ImportError:
+        warnings.warn("anesthetic not installed. "
+                      "Cannot return NestedSamples object.")
+        return
+    return anesthetic.read_chains(
+        str(Path(kwargs['base_dir']) / kwargs['file_root']))
 
 
 
 def _make_resume_file(loglikelihood, **kwargs):
     import fortranformat as ff
-    resume_filename = os.path.join(kwargs['base_dir'],
-                                   kwargs['file_root'])+".resume"
+    resume_filename = Path(kwargs['base_dir']) / (kwargs['file_root']
+                                                  + ".resume")
 
     try:
         from mpi4py import MPI
@@ -699,7 +713,11 @@ def _make_resume_file(loglikelihood, **kwargs):
     for i in np.array_split(np.arange(len(kwargs['cube_samples'])), size)[rank]:
         cube = kwargs['cube_samples'][i]
         theta = kwargs['prior'](cube)
-        logL, derived = loglikelihood(theta)
+        logL = loglikelihood(theta)
+        try:
+            logL, derived = logL
+        except TypeError:
+            derived = []
         nDims = len(theta)
         nDerived = len(derived)
         lives.append(np.concatenate([cube,theta,derived,[logL_birth, logL]]))
@@ -708,17 +726,17 @@ def _make_resume_file(loglikelihood, **kwargs):
         sendbuf = np.array(lives).flatten()
         sendcounts = np.array(comm.gather(len(sendbuf)))
         if rank == 0:
-            recvbuf = np.empty(sum(sendcounts), dtype=int)
+            recvbuf = np.empty(sum(sendcounts))
         else:
             recvbuf = None
         comm.Gatherv(sendbuf=sendbuf, recvbuf=(recvbuf, sendcounts), root=0)
 
-        lives = np.reshape(sendbuf, (len(kwargs['cube_samples']), len(lives[0])))
-    else:
-        lives = np.array(lives)
-
     if rank == 0:
-        with open(resume_filename,'w') as f:
+        if MPI:
+            lives = np.reshape(recvbuf, (len(kwargs['cube_samples']), len(lives[0])))
+        else:
+            lives = np.array(lives)
+        with open(resume_filename,"w") as f:
             def write(var):
                 var = np.atleast_1d(var)
                 if isinstance(var[0], np.integer):
@@ -761,7 +779,7 @@ def _make_resume_file(loglikelihood, **kwargs):
             write('=== Number of equally weighted posterior points in each cluster ===')
             write(0)
             write('=== Minimum loglikelihood positions ===')
-            write(np.argmin(lives[:,-1]))
+            write(np.argmin(lives[:,-1])+1)
             write('=== Number of weighted posterior points in each dead cluster ===')
             write('=== Number of equally weighted posterior points in each dead cluster ===')
             write('=== global evidence -- log(<Z>) ===')
@@ -817,6 +835,5 @@ def _make_resume_file(loglikelihood, **kwargs):
             write('=== global equally weighted posterior points ===')
 
 def _legacy_make_resume_file(settings, loglikelihood, prior):
-    kwargs = settings.__dict__()
-    print(kwargs)
-    _make_resume_file(loglikelihood, prior = prior, **kwargs)
+    kwargs = settings.__dict__
+    _make_resume_file(loglikelihood, prior=prior, **kwargs)

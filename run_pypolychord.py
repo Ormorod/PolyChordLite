@@ -1,6 +1,6 @@
-from numpy import pi, log
-import numpy as np
+from numpy import pi, log, full
 import pypolychord
+from pypolychord.settings import PolyChordSettings
 from pypolychord.priors import UniformPrior
 try:
     from mpi4py import MPI
@@ -50,31 +50,42 @@ def cluster(points):
     - work with the above numpy integer array
     """
     npoints = points.shape[0]
-    clusters = np.full(npoints, -1, dtype=int)
+    return full(npoints, -1, dtype=int)
 
-    return clusters
+#| Initialise the settings
+
+settings = PolyChordSettings(nDims, nDerived)
+settings.file_root = 'gaussian'
+settings.nlive = 200
+settings.do_clustering = True
+settings.read_resume = False
+
+#| Run PolyChord
+
+output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper, cluster)
 
 #| Make an anesthetic plot 
 
 paramnames = [('p%i' % i, r'\theta_%i' % i) for i in range(nDims)]
 paramnames += [('r*', 'r')]
+output.make_paramnames_files(paramnames)
 
-#| Run PolyChord
+#| Make an anesthetic plot (could also use getdist)
+try:
+    import anesthetic as ac
+    samples = ac.read_chains(settings.base_dir + '/' + settings.file_root)
+    fig, axes = ac.make_2d_axes(['p0', 'p1', 'p2', 'p3', 'r'])
+    samples.plot_2d(axes)
+    fig.savefig('posterior.pdf')
 
-output = pypolychord.run(
-    likelihood,
-    nDims,
-    nDerived=nDerived,
-    prior=prior,
-    dumper=dumper,
-    file_root='gaussian',
-    nlive=200,
-    do_clustering=True,
-    read_resume=False,
-    paramnames=paramnames,
-)
+except ImportError:
+    try:
+        import getdist.plots
+        posterior = output.posterior
+        g = getdist.plots.getSubplotPlotter()
+        g.triangle_plot(posterior, filled=True)
+        g.export('posterior.pdf')
+    except ImportError:
+        print("Install matplotlib and getdist for plotting examples")
 
-#| Make an anesthetic plot 
-
-fig, axes = output.plot_2d(['p0','p1','p2','p3','r'])
-fig.savefig('posterior.pdf')
+    print("Install anesthetic or getdist for plotting examples")
