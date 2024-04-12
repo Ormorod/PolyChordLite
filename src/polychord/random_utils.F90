@@ -613,4 +613,20 @@ module random_module
 
     end subroutine random_inverse_covmat
 
+
+    !> Generate a random draw from a multivariate gaussian distribution
+    !!
+    function random_multivariate_gaussian(mu, sigma) result x
+        use utils_module, only: calc_cholesky
+        implicit none
+        real(dp), intent(in) :: mean
+        real(dp), intent(in) :: cov
+        real(dp), dimension(size(mu), size(mu)) :: L
+        real(dp) :: dimension(size(mean)) :: x
+
+        L = calc_cholesky(cov)
+        x = mu + matmul(L, random_gaussian(size(mu)))
+
+    end function random_multivariate_gaussian
+
 end module random_module
