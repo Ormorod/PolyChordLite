@@ -621,7 +621,7 @@ def run(loglikelihood, nDims, **kwargs):
                     (kwargs['file_root'] + ".paramnames"))
 
     if 'cube_samples' in kwargs:
-        _make_resume_file(loglikelihood, kwargs['prior'], **kwargs)
+        _make_resume_file(loglikelihood, **kwargs)
         read_resume = kwargs['read_resume']
         kwargs['read_resume'] = True
 
