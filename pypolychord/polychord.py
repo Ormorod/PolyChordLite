@@ -108,7 +108,7 @@ def run_polychord(loglikelihood, nDims, nDerived, settings,
 
     cluster: function
         This function clusters a subset of the live points.
-        (Default: Use the native KNN clustering by returning zeros )
+        (Default: Use the native KNN clustering by returning zeros)
 
         Parameters
         ----------
