@@ -19,7 +19,7 @@ module generate_module
     function GenerateSeed(settings,RTI,seed_cluster) result(seed_point)
         use settings_module,   only: program_settings
         use run_time_module,   only: run_time_info
-        use random_module,     only: random_integer,random_integer_P,bernoulli_trial
+        use random_module,     only: random_integer,random_integer_P,bernoulli_trial, random_multivariate_gaussian
         use utils_module,      only: logsumexp
         implicit none
 
@@ -38,8 +38,18 @@ module generate_module
 
         real(dp), dimension(RTI%ncluster) :: probs
 
+        real(dp), dimension(RTI%ncluster) :: logXpXp
+
+        integer :: i
+
         ! 0) Calculate an array proportional to the volumes
-        probs = RTI%logXp                 ! prob_p = log( X_p )
+        ! TODO: this is where we need to work!
+
+        do i=1,RTI%ncluster
+            logXpXp(i) = RTI%logXpXq(i,i)
+        end do
+        probs = random_multivariate_gaussian(2*RTI%logXp - logXpXp, RTI%logXpXq - spread(RTI%logXp, 1,RTI%ncluster) - spread(RTI%logXp, 2, RTI%ncluster), RTI%ncluster)
+        ! probs = RTI%logXp                 ! prob_p = log( X_p )
         probs = probs - logsumexp(probs)  ! prob_p = log( X_p/(sum_q X_q) )
         probs = exp(probs)                ! prob_p = X_p/(sum_q X_q)
 
