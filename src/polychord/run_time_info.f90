@@ -353,7 +353,6 @@ module run_time_module
         integer, dimension(RTI%ncluster-1)   :: old_target
         integer, dimension(num_new_clusters) :: new_target
         integer                              :: num_old_clusters
-        integer, dimension(2)                :: child_parent_pair
 
         real(dp), dimension(size(RTI%live,1),RTI%nlive(p))     :: old_live
         integer :: old_nlive
