@@ -461,10 +461,6 @@ def run(loglikelihood, nDims, **kwargs):
         (Default: 'test')
         Root name of the files produced.
 
-    cluster: function
-        This function clusters a subset of the live points.
-        (Default: Use the native KNN clustering by returning zeros)
-
     cluster_dir : string
         (Default: 'clusters')
         Where to store clustering files. (base_dir/cluster_dir)
