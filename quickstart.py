@@ -1,4 +1,4 @@
-from numpy import pi, log
+from numpy import pi, log, full
 import pypolychord
 from pypolychord.priors import UniformPrior
 try:
@@ -37,6 +37,21 @@ def prior(hypercube):
 def dumper(live, dead, logweights, logZ, logZerr):
     print("Last dead point:", dead[-1])
 
+#| Optional cluster function allow user-defined clustering
+
+def cluster(points):
+    """
+    <do some clustering algorithm to assign clusters>
+    - clusters should be an array of cluster labels for each point
+    - each cluster should have at least one point
+    - thus max(clusters)+1 should be the number of clusters
+    - i.e. clusters are 0-indexed
+    - work with the above numpy integer array
+    """
+    npoints = points.shape[0]
+    return full(npoints, -1, dtype=int)
+
+
 #| Parameter names
 #! This is a list of tuples (label, latex)
 #! Derived parameters should be followed by a *
@@ -57,6 +72,7 @@ output = pypolychord.run(
     do_clustering=True,
     read_resume=False,
     paramnames=paramnames,
+    cluster=cluster,
 )
 
 #| Make an anesthetic plot 
