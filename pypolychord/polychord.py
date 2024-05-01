@@ -3,7 +3,6 @@ from pathlib import Path
 import warnings
 import _pypolychord
 import numpy as np
-import anesthetic
 
 
 def default_prior(cube):
