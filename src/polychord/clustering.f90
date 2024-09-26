@@ -254,6 +254,7 @@ module cluster_module
         use run_time_module,   only: run_time_info,add_cluster
         use calculate_module,  only: calculate_distance2_matrix
         use KNN_clustering,    only: NN_clustering
+        use array_module,      only: sel
         implicit none
 
         !> Program settings
@@ -307,10 +308,10 @@ module cluster_module
                 ! get the position matrix for this cluster
                 if(present(sub_dimensions)) then
                     points(:nDims, :nlive) =&
-                        RTI%live(sub_dimensions,:nlive,i_cluster)
+                        RTI%live(sub_dimensions,sel(nint(RTI%live(settings%c0,:))==i_cluster))
                 else 
                     points(:nDims, :nlive) =&
-                        RTI%live(settings%h0:settings%h1,:nlive,i_cluster)
+                        RTI%live(settings%h0:settings%h1,sel(nint(RTI%live(settings%c0,:))==i_cluster))
                 end if
 
                 clusters(:nlive) = cluster(points(:nDims, :nlive))

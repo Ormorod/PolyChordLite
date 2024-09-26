@@ -720,7 +720,7 @@ def _make_resume_file(loglikelihood, **kwargs):
             derived = []
         nDims = len(theta)
         nDerived = len(derived)
-        lives.append(np.concatenate([cube,theta,derived,[logL_birth, logL]]))
+        lives.append(np.concatenate([cube,theta,derived,[logL_birth, logL, 1.0]]))
 
     if MPI:
         sendbuf = np.array(lives).flatten()
@@ -789,7 +789,7 @@ def _make_resume_file(loglikelihood, **kwargs):
             write('=== posterior thin factor ===')
             write(kwargs['boost_posterior'])
             write('=== local loglikelihood bounds ===')
-            write(lives[:,-1].min())
+            write(lives[:,-2].min())
             write('=== local volume -- log(<X_p>) ===')
             write(0.0)
             write('=== last update volume ===')
@@ -818,19 +818,15 @@ def _make_resume_file(loglikelihood, **kwargs):
             for x in np.identity(nDims):
                 write(x)
             write('=== live points ===')
-            write('---------------------------------------')
             for x in lives:
                 write(x)
             write('=== dead points ===')
             write('=== logweights of dead points ===')
             write('=== phantom points ===')
-            write('---------------------------------------')
             write('=== weighted posterior points ===')
-            write('---------------------------------------')
             write('=== dead weighted posterior points ===')
             write('=== global weighted posterior points ===')
             write('=== equally weighted posterior points ===')
-            write('---------------------------------------')
             write('=== dead equally weighted posterior points ===')
             write('=== global equally weighted posterior points ===')
 
