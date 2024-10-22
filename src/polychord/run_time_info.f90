@@ -528,9 +528,9 @@ module run_time_module
         end do
 
         ! n+1) sort out the new cluster labels
+        call reallocate(RTI%cluster_tree, new_size1=RTI%next_cluster_label+num_new_clusters-1)
         do i_cluster=1,num_new_clusters
             RTI%cluster_labels(new_target(i_cluster)) = RTI%next_cluster_label
-            ! TODO: still need to make sure that RTI%cluster_tree is large enough
             RTI%cluster_tree(RTI%next_cluster_label) = cluster_label
             RTI%next_cluster_label = RTI%next_cluster_label + 1
         end do
