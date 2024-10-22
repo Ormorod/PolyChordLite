@@ -113,8 +113,8 @@ module run_time_module
         !> next available cluster label
         integer :: next_cluster_label
 
-        !> parent of each cluster
-        integer, allocatable, dimension(:) :: parent
+        !> cluster_tree(i) is the parent of cluster i
+        integer, allocatable, dimension(:) :: cluster_tree
 
     end type run_time_info
 
@@ -173,7 +173,7 @@ module run_time_module
             RTI%nlike(size(settings%grade_dims)),                       &
             RTI%cluster_labels(1),                                      & 
             RTI%dead_cluster_labels(settings%nlive),                    &
-            RTI%parent(settings%nlive)                                  &
+            RTI%cluster_tree(1)                                         &
             )
 
         ! All evidences set to logzero
@@ -223,7 +223,7 @@ module run_time_module
         ! original cluster is labelled 0
         RTI%cluster_labels = 0
         RTI%next_cluster_label = 1
-        RTI%parent = 0
+        RTI%cluster_tree = 0
 
 
     end subroutine initialise_run_time_info
@@ -530,8 +530,8 @@ module run_time_module
         ! n+1) sort out the new cluster labels
         do i_cluster=1,num_new_clusters
             RTI%cluster_labels(new_target(i_cluster)) = RTI%next_cluster_label
-            ! still need to make sure that RTI%parent is large enough
-            RTI%parent(RTI%next_cluster_label) = cluster_label
+            ! TODO: still need to make sure that RTI%cluster_tree is large enough
+            RTI%cluster_tree(RTI%next_cluster_label) = cluster_label
             RTI%next_cluster_label = RTI%next_cluster_label + 1
         end do
 

@@ -956,9 +956,9 @@ module read_write_module
         open(unit=write_cluster_tree_unit,file=trim(cluster_tree_file(settings)))
 
         !! line child will contain the parent of that child
-        do i=1, size(RTI%parent)
+        do i=1, size(RTI%cluster_tree)
 
-            write(write_cluster_tree_unit,trim('('//INT_FMT//')')) RTI%parent(i)
+            write(write_cluster_tree_unit,trim('('//INT_FMT//')')) RTI%cluster_tree(i)
 
         end do
         
