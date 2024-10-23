@@ -173,7 +173,7 @@ module run_time_module
             RTI%nlike(size(settings%grade_dims)),                       &
             RTI%cluster_labels(1),                                      & 
             RTI%dead_cluster_labels(settings%nlive),                    &
-            RTI%cluster_tree(1)                                         &
+            RTI%cluster_tree(0)                                         &
             )
 
         ! All evidences set to logzero
@@ -222,8 +222,6 @@ module run_time_module
 
         ! original cluster is labelled 0
         RTI%cluster_labels = 0
-        RTI%next_cluster_label = 1
-        RTI%cluster_tree = 0
 
 
     end subroutine initialise_run_time_info
@@ -528,12 +526,11 @@ module run_time_module
         end do
 
         ! n+1) sort out the new cluster labels
-        call reallocate(RTI%cluster_tree, new_size1=RTI%next_cluster_label+num_new_clusters-1)
-        do i_cluster=1,num_new_clusters
-            RTI%cluster_labels(new_target(i_cluster)) = RTI%next_cluster_label
-            RTI%cluster_tree(RTI%next_cluster_label) = cluster_label
-            RTI%next_cluster_label = RTI%next_cluster_label + 1
-        end do
+        RTI%cluster_labels(new_target) = [(i, i=size(RTI%cluster_tree)+1, size(RTI%cluster_tree)+num_new_clusters)]
+
+        ! n+2) update the cluster tree
+        call reallocate(RTI%cluster_tree, new_size1=size(RTI%cluster_tree)+num_new_clusters)
+        RTI%cluster_tree(size(RTI%cluster_tree)-num_new_clusters+1:) = cluster_label
 
     end subroutine add_cluster
 
