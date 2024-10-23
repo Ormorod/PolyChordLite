@@ -342,9 +342,8 @@ module cluster_module
             
         end do
 
-        do i_cluster=1, size(RTI%cluster_labels)
-            print *,RTI%cluster_labels(i_cluster)
-        end do
+        print *, "Active clusters:", RTI%cluster_labels
+
     end function do_clustering
 
 

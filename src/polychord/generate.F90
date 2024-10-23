@@ -47,10 +47,8 @@ module generate_module
         ! 0) Calculate an array proportional to the volumes
         ! TODO: this is where we need to work!
 
-        do j=1,RTI%ncluster
-            logXpXp(j) = RTI%logXpXq(j,j)
-        end do
-        probs = random_multivariate_gaussian(2*RTI%logXp - logXpXp, RTI%logXpXq - spread(RTI%logXp, 1,RTI%ncluster) - spread(RTI%logXp, 2, RTI%ncluster), RTI%ncluster)
+        logXpXp = [(RTI%logXpXq(j,j), j=1,RTI%ncluster)]
+        probs = random_multivariate_gaussian(2*RTI%logXp - logXpXp/2, RTI%logXpXq - spread(RTI%logXp, 1,RTI%ncluster) - spread(RTI%logXp, 2, RTI%ncluster), RTI%ncluster)
         ! probs = RTI%logXp                 ! prob_p = log( X_p )
         probs = probs - logsumexp(probs)  ! prob_p = log( X_p/(sum_q X_q) )
         probs = exp(probs)                ! prob_p = X_p/(sum_q X_q)
