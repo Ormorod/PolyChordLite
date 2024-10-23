@@ -251,6 +251,7 @@ module read_write_module
         call write_integers(RTI%nequals_dead,        "=== Number of equally weighted posterior points in each dead cluster ===")
         call write_integers(RTI%cluster_labels,      "=== Labels for active clusters in cluster tree ===")
         call write_integers(RTI%dead_cluster_labels, "=== cluster labels of dead points ===")
+        call write_integers(RTI%cluster_tree,        "=== cluster tree ===")
   
        ! write evidences
         call write_double(RTI%logZ,                  "=== global evidence -- log(<Z>) ===")                    
@@ -435,6 +436,7 @@ module read_write_module
 
         call read_integers(RTI%cluster_labels,'-',RTI%ncluster)
         call read_integers(RTI%dead_cluster_labels,'-',RTI%ndead)
+        call read_integers(RTI%cluster_tree,'-',max(maxval(RTI%cluster_labels), maxval(RTI%dead_cluster_labels)))
 
         call read_double(RTI%logZ,'-')
         call read_double(RTI%logZ2,'-')
