@@ -133,6 +133,8 @@ module settings_module
         integer :: p_d1
         integer :: np
 
+        ! Number of Xp simulations
+        integer :: nsim = 1000
 
 
         ! Sub clustering dimensions
