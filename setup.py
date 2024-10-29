@@ -92,7 +92,7 @@ class CustomBuildPy(_build_py, object):
             env["DEBUG"] = "1"
         
         BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-        env["PWD"] = BASE_PATH
+        env["CURDIR"] = BASE_PATH
         env.update({k : os.environ[k] for k in ["CC", "CXX", "FC"] if k in os.environ})
         subprocess.check_call(["make", "-e", "libchord.so"], env=env, cwd=BASE_PATH)
         if not os.path.isdir("pypolychord/lib/"):
@@ -125,12 +125,12 @@ pypolychord_module = Extension(
 setup(name=NAME,
       version=get_version(),
       description='Python interface to PolyChord ' + get_version(),
-      url='https://ccpforge.cse.rl.ac.uk/gf/project/polychord/',
+      url='https://github.com/PolyChord/PolyChordLite',
       author='Will Handley',
       author_email='wh260@cam.ac.uk',
       license='PolyChord',
       packages=find_packages(),
-      install_requires=['numpy','scipy',"anesthetic @ git+https://github.com/williamjameshandley/anesthetic@master"],
+      install_requires=['numpy','scipy','anesthetic'],
       extras_require={'plotting': 'getdist'},
       distclass=DistributionWithOption,
       ext_modules=[pypolychord_module],

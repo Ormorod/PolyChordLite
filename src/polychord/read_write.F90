@@ -249,6 +249,9 @@ module read_write_module
         call write_integers(RTI%i,                   "=== Minimum loglikelihood positions ===")                    
         call write_integers(RTI%nposterior_dead,     "=== Number of weighted posterior points in each dead cluster ===")
         call write_integers(RTI%nequals_dead,        "=== Number of equally weighted posterior points in each dead cluster ===")
+        call write_integers(RTI%cluster_labels,      "=== Labels for active clusters in cluster tree ===")
+        call write_integers(RTI%dead_cluster_labels, "=== cluster labels of dead points ===")
+        call write_integers(RTI%cluster_tree,        "=== cluster tree ===")
   
        ! write evidences
         call write_double(RTI%logZ,                  "=== global evidence -- log(<Z>) ===")                    
@@ -430,6 +433,11 @@ module read_write_module
   
         call read_integers(RTI%nposterior_dead,'-',RTI%ncluster_dead)
         call read_integers(RTI%nequals_dead,'-',RTI%ncluster_dead)
+
+        call read_integers(RTI%cluster_labels,'-',RTI%ncluster)
+        call read_integers(RTI%dead_cluster_labels,'-',RTI%ndead)
+        call read_integers(RTI%cluster_tree,'-',max(maxval(RTI%cluster_labels), maxval(RTI%dead_cluster_labels)))
+
         call read_double(RTI%logZ,'-')
         call read_double(RTI%logZ2,'-')
         call read_double(RTI%thin_posterior,'-')
@@ -619,7 +627,8 @@ module read_write_module
 
 
     subroutine write_phys_live_points(settings,RTI)
-        use utils_module, only: DB_FMT,fmt_len,write_phys_unit,write_phys_cluster_unit, write_live_birth_unit
+        use utils_module, only: DB_FMT,INT_FMT,fmt_len,write_phys_unit,write_phys_cluster_unit,write_live_birth_unit, &
+            write_live_birth_cluster_unit
         use settings_module, only: program_settings 
         use run_time_module, only: run_time_info 
         implicit none
@@ -630,18 +639,20 @@ module read_write_module
         integer i_live
         integer i_cluster
 
-        character(len=fmt_len) :: fmt_dbl, fmt_dbl_1
+        character(len=fmt_len) :: fmt_dbl, fmt_dbl_1, fmt_mix
 
         call check_directories(settings)
 
         ! Initialise the formats
         write(fmt_dbl,'("(",I0,A,")")') settings%nDims+settings%nDerived+1, DB_FMT
         write(fmt_dbl_1,'("(",I0,A,")")') settings%nDims+settings%nDerived+2, DB_FMT
+        write(fmt_mix,'("(",I0,A,",",I0,A,")")') settings%nDims+settings%nDerived+2, DB_FMT, 1, INT_FMT
 
 
         ! Open a new file for appending to
         open(write_phys_unit,file=trim(phys_live_file(settings)), action='write')
         open(write_live_birth_unit,file=trim(phys_live_birth_file(settings)), action='write')
+        open(write_live_birth_cluster_unit,file=trim(phys_live_birth_cluster_file(settings)), action='write')
 
         do i_cluster = 1,RTI%ncluster
 
@@ -657,6 +668,12 @@ module read_write_module
                     RTI%live(settings%l0,i_live,i_cluster), &
                     RTI%live(settings%b0,i_live,i_cluster)
 
+                write(write_live_birth_cluster_unit,fmt_mix) &
+                    RTI%live(settings%p0:settings%d1,i_live,i_cluster), &
+                    RTI%live(settings%l0,i_live,i_cluster), &
+                    RTI%live(settings%b0,i_live,i_cluster), &
+                    RTI%cluster_labels(i_cluster)
+
                 if(settings%do_clustering) then
                     write(write_phys_cluster_unit,fmt_dbl) &
                         RTI%live(settings%p0:settings%d1,i_live,i_cluster), &
@@ -671,13 +688,14 @@ module read_write_module
 
         close(write_phys_unit)
         close(write_live_birth_unit)
+        close(write_live_birth_cluster_unit)
 
 
     end subroutine write_phys_live_points
 
 
     subroutine write_dead_points(settings,RTI)
-        use utils_module, only: DB_FMT,fmt_len,write_dead_unit, write_dead_birth_unit
+        use utils_module, only: DB_FMT,INT_FMT,fmt_len,write_dead_unit, write_dead_birth_unit, write_dead_birth_cluster_unit
         use settings_module, only: program_settings 
         use run_time_module, only: run_time_info 
         implicit none
@@ -688,6 +706,7 @@ module read_write_module
         integer i_dead
 
         character(len=fmt_len) :: fmt_dbl
+        character(len=fmt_len) :: fmt_mix
 
         call check_directories(settings)
 
@@ -714,6 +733,19 @@ module read_write_module
                 RTI%dead(settings%b0,i_dead)
         end do
         close(write_dead_birth_unit)
+
+        ! new value is an integer
+        write(fmt_mix,'("(",I0,A,",",I0,A,")")') settings%nDims+settings%nDerived+2, DB_FMT, 1, INT_FMT
+
+        open(write_dead_birth_cluster_unit,file=trim(dead_birth_cluster_file(settings)), action='write')
+        do i_dead=1,RTI%ndead
+            write(write_dead_birth_cluster_unit,fmt_mix) & 
+                RTI%dead(settings%p0:settings%d1,i_dead), &
+                RTI%dead(settings%l0,i_dead), &
+                RTI%dead(settings%b0,i_dead), &
+                RTI%dead_cluster_labels(i_dead)
+        end do 
+        close(write_dead_birth_cluster_unit)
 
 
     end subroutine write_dead_points
@@ -908,6 +940,35 @@ module read_write_module
         close(write_stats_unit)
 
     end subroutine write_stats_file
+
+
+    subroutine write_cluster_tree_file(settings, RTI)
+        use settings_module, only: program_settings
+        use run_time_module, only: run_time_info
+        use utils_module, only: INT_FMT,write_cluster_tree_unit
+        implicit none
+
+        type(program_settings), intent(in) :: settings
+        type(run_time_info), intent(in) :: RTI
+
+        integer :: i
+
+        call check_directories(settings)
+
+        open(unit=write_cluster_tree_unit,file=trim(cluster_tree_file(settings)))
+
+        !! line child will contain the parent of that child
+        do i=1, size(RTI%cluster_tree)
+
+            write(write_cluster_tree_unit,trim('('//INT_FMT//')')) RTI%cluster_tree(i)
+
+        end do
+        
+        close(write_cluster_tree_unit)
+
+    end subroutine write_cluster_tree_file
+
+    
 
     function mean(RTI,settings) result(mu)
         use settings_module, only: program_settings
@@ -1143,6 +1204,20 @@ module read_write_module
 
     end function phys_live_birth_file
 
+    function phys_live_birth_cluster_file(settings) result(file_name)
+        use settings_module, only: program_settings
+        use utils_module,    only: STR_LENGTH
+        implicit none
+        type(program_settings), intent(in) :: settings
+
+        character(STR_LENGTH) :: file_name
+
+        character(STR_LENGTH) :: cluster_num
+
+        file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_phys_live-birth-cluster.txt'
+
+    end function phys_live_birth_cluster_file
+
     function prior_file(settings) result(file_name)
         use settings_module, only: program_settings
         use utils_module,    only: STR_LENGTH
@@ -1187,6 +1262,17 @@ module read_write_module
 
     end function dead_birth_file
 
+    function dead_birth_cluster_file(settings) result(file_name)
+        use settings_module, only: program_settings
+        use utils_module,    only: STR_LENGTH
+        implicit none
+        type(program_settings), intent(in) :: settings
+        character(STR_LENGTH) :: file_name
+
+        file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_dead-birth-cluster.txt'
+
+    end function dead_birth_cluster_file
+
     function paramnames_file(settings) result(file_name)
         use settings_module, only: program_settings
         use utils_module,    only: STR_LENGTH
@@ -1222,5 +1308,17 @@ module read_write_module
         file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '.prior_info'
 
     end function prior_info_file
+
+    function cluster_tree_file(settings) result(file_name)
+        use settings_module, only: program_settings
+        use utils_module,    only: STR_LENGTH
+        implicit none
+        type(program_settings), intent(in) :: settings
+
+        character(STR_LENGTH) :: file_name
+
+        file_name = trim(settings%base_dir) // '/' // trim(settings%file_root) // '_cluster_tree.txt'
+
+    end function
 
 end module

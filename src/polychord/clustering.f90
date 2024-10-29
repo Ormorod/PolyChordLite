@@ -341,6 +341,8 @@ module cluster_module
             
         end do
 
+        print *, "Active clusters:", RTI%cluster_labels
+
     end function do_clustering
 
 

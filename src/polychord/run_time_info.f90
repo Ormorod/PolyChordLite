@@ -106,6 +106,18 @@ module run_time_module
         !> what to thin the posterior by
         real(dp) :: thin_posterior
 
+        !> unique labels for live clusters
+        integer, allocatable, dimension(:) :: cluster_labels
+
+        !> labels of dead clusters
+        integer, allocatable, dimension(:) :: dead_cluster_labels
+
+        !> next available cluster label
+        integer :: next_cluster_label
+
+        !> cluster_tree(i) is the parent of cluster i
+        integer, allocatable, dimension(:) :: cluster_tree
+
     end type run_time_info
 
     contains
@@ -161,7 +173,10 @@ module run_time_module
             RTI%cholesky(settings%nDims,settings%nDims,1),              &
             RTI%covmat(settings%nDims,settings%nDims,1),                &
             RTI%num_repeats(size(settings%grade_dims)),                 &
-            RTI%nlike(size(settings%grade_dims))                        &
+            RTI%nlike(size(settings%grade_dims)),                       &
+            RTI%cluster_labels(1),                                      & 
+            RTI%dead_cluster_labels(settings%nlive),                    &
+            RTI%cluster_tree(0)                                         &
             )
 
         ! All evidences set to logzero
@@ -208,6 +223,9 @@ module run_time_module
         RTI%maxlogweight_global = settings%logzero
 
         RTI%thin_posterior = 0d0
+
+        ! original cluster is labelled 0
+        RTI%cluster_labels = 0
 
 
     end subroutine initialise_run_time_info
@@ -338,6 +356,8 @@ module run_time_module
         integer,intent(in),dimension(:) :: cluster_list
         !> The number of new clusters
         integer,intent(in) :: num_new_clusters
+        ! Check for matches, then change according to the new label (something like j*2^new label + odd)
+        integer cluster_label
 
 
         !Iterators
@@ -409,6 +429,8 @@ module run_time_module
         logZXp = RTI%logZXp(p)
         logZpXp= RTI%logZpXp(p)
         logXpXq= [ RTI%logXpXq(p,:p-1) , RTI%logXpXq(p,p+1:) ]
+        ! Store cluster label of old cluster, as this will be modified to label the new clusters
+        cluster_label = RTI%cluster_labels(p)
 
 
 
@@ -425,6 +447,7 @@ module run_time_module
         call reallocate(RTI%nposterior,      new_size1=RTI%ncluster, save_indices1=old_save,target_indices1=old_target)
         call reallocate(RTI%equals,          new_size3=RTI%ncluster, save_indices3=old_save,target_indices3=old_target)
         call reallocate(RTI%nequals,         new_size1=RTI%ncluster, save_indices1=old_save,target_indices1=old_target)
+        call reallocate(RTI%cluster_labels,  new_size1=RTI%ncluster, save_indices1=old_save,target_indices1=old_target)
 
         ! Reallocate the cholesky matrices
         call reallocate(RTI%cholesky, new_size3=RTI%ncluster, save_indices3=old_save,target_indices3=old_target)
@@ -532,6 +555,13 @@ module run_time_module
             RTI%posterior(settings%pos_l,:RTI%nposterior(new_target(i_cluster)),new_target(i_cluster)) = RTI%posterior(settings%pos_l,:RTI%nposterior(new_target(i_cluster)),new_target(i_cluster)) + RTI%logZp(new_target(i_cluster)) -logZp
         end do
 
+        ! n+1) sort out the new cluster labels
+        RTI%cluster_labels(new_target) = [(i, i=size(RTI%cluster_tree)+1, size(RTI%cluster_tree)+num_new_clusters)]
+
+        ! n+2) update the cluster tree
+        call reallocate(RTI%cluster_tree, new_size1=size(RTI%cluster_tree)+num_new_clusters)
+        RTI%cluster_tree(size(RTI%cluster_tree)-num_new_clusters+1:) = cluster_label
+
     end subroutine add_cluster
 
     function delete_cluster(settings,RTI) 
@@ -605,6 +635,8 @@ module run_time_module
             call reallocate(RTI%nposterior,      new_size1=RTI%ncluster, save_indices1=indices)
             call reallocate(RTI%equals,          new_size3=RTI%ncluster, save_indices3=indices)
             call reallocate(RTI%nequals,         new_size1=RTI%ncluster, save_indices1=indices)
+            ! Let's just pray this is how it works
+            call reallocate(RTI%cluster_labels,  new_size1=RTI%ncluster, save_indices1=indices)
 
             ! Reallocate the cholesky matrices
             call reallocate(RTI%cholesky, new_size3=RTI%ncluster, save_indices3=indices)
@@ -813,6 +845,9 @@ module run_time_module
             call add_point(point,RTI%dead,RTI%ndead)
             if (RTI%ndead > size(RTI%logweights)) call reallocate(RTI%logweights,RTI%ndead*2)
             RTI%logweights(RTI%ndead) = settings%logzero
+            ! add cluster label
+            if (RTI%ndead > size(RTI%dead_cluster_labels)) call reallocate(RTI%dead_cluster_labels,RTI%ndead*2)
+            RTI%dead_cluster_labels(RTI%ndead) = RTI%cluster_labels(cluster_add)
         end if
 
     end function replace_point
@@ -838,6 +873,9 @@ module run_time_module
         call add_point(deleted_point,RTI%dead,RTI%ndead)                                 ! Add the deleted point to the dead points
         if (RTI%ndead > size(RTI%logweights)) call reallocate(RTI%logweights,RTI%ndead*2)
         RTI%logweights(RTI%ndead) = logweight                                            ! Add the logweight to the array
+        ! add cluster label
+        if (RTI%ndead > size(RTI%dead_cluster_labels)) call reallocate(RTI%dead_cluster_labels,RTI%ndead*2)
+        RTI%dead_cluster_labels(RTI%ndead) = RTI%cluster_labels(cluster_del)
 
         ! Calculate the posterior point and add it to the posterior stack
         posterior_point = calculate_posterior_point(settings,deleted_point,logweight,RTI%logZ,logsumexp(RTI%logXp))

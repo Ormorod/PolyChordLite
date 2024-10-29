@@ -1,6 +1,5 @@
 from numpy import pi, log, full
 import pypolychord
-from pypolychord.settings import PolyChordSettings
 from pypolychord.priors import UniformPrior
 try:
     from mpi4py import MPI
@@ -52,40 +51,36 @@ def cluster(points):
     npoints = points.shape[0]
     return full(npoints, -1, dtype=int)
 
-#| Initialise the settings
 
-settings = PolyChordSettings(nDims, nDerived)
-settings.file_root = 'gaussian'
-settings.nlive = 200
-settings.do_clustering = True
-settings.read_resume = False
+#| Parameter names
+#! This is a list of tuples (label, latex)
+#! Derived parameters should be followed by a *
+
+paramnames = [(f'p{i}', f'\\theta_{i}') for i in range(nDims)]
+paramnames += [('r*', 'r')]
 
 #| Run PolyChord
 
-output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper, cluster)
+output = pypolychord.run(
+    likelihood,
+    nDims,
+    nDerived=nDerived,
+    prior=prior,
+    dumper=dumper,
+    file_root='gaussian',
+    nlive=200,
+    do_clustering=True,
+    read_resume=False,
+    paramnames=paramnames,
+    cluster=cluster,
+)
 
 #| Make an anesthetic plot 
 
-paramnames = [('p%i' % i, r'\theta_%i' % i) for i in range(nDims)]
-paramnames += [('r*', 'r')]
-output.make_paramnames_files(paramnames)
-
-#| Make an anesthetic plot (could also use getdist)
 try:
-    import anesthetic as ac
-    samples = ac.read_chains(settings.base_dir + '/' + settings.file_root)
-    fig, axes = ac.make_2d_axes(['p0', 'p1', 'p2', 'p3', 'r'])
-    samples.plot_2d(axes)
+    from anesthetic import make_2d_axes
+    fig, ax = make_2d_axes(['p0', 'p1', 'p2', 'p3', 'r'])
+    output.plot_2d(ax)
     fig.savefig('posterior.pdf')
-
 except ImportError:
-    try:
-        import getdist.plots
-        posterior = output.posterior
-        g = getdist.plots.getSubplotPlotter()
-        g.triangle_plot(posterior, filled=True)
-        g.export('posterior.pdf')
-    except ImportError:
-        print("Install matplotlib and getdist for plotting examples")
-
-    print("Install anesthetic or getdist for plotting examples")
+    print("Install anesthetic for plotting examples.")

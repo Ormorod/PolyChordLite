@@ -131,7 +131,8 @@ void cluster(double* points, int* cluster_list, int nDims, int nPoints)
     if (array_cluster_list==NULL) {Py_DECREF(array_points); throw PythonException();}
 
     /* Compute cluster_list from the cluster */
-    PyObject_CallFunctionObjArgs(python_cluster,array_points,array_cluster_list,NULL);
+    PyObject *cluster = PyObject_CallFunctionObjArgs(python_cluster,array_points,array_cluster_list,NULL);
+    if (cluster==NULL) {throw PythonException();}
 
     /* Garbage collect */
     Py_DECREF(array_cluster_list); Py_DECREF(array_points);
