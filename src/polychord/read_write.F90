@@ -266,6 +266,7 @@ module read_write_module
         call write_doubles(RTI%logZpXp,              "=== local evidence volume cross correlation -- log(<Z_pX_p>) ===")                    
         call write_doubles_2(RTI%logXpXq,            "=== local volume cross correlation -- log(<X_pX_q>) ===")                    
         call write_doubles(RTI%maxlogweight,         "=== maximum log weights -- log(w_p) ===")                    
+        call write_doubles(RTI%logXpsim,             "=== local volume simulations -- log(X_p)_sim ===")
   
         call write_doubles(RTI%logZp_dead,           "=== local dead evidence -- log(<Z_p>) ===")
         call write_doubles(RTI%logZp2_dead,          "=== local dead evidence^2 -- log(<Z_p^2>) ===")
@@ -451,6 +452,7 @@ module read_write_module
         call read_doubles(RTI%logZpXp,'-',RTI%ncluster)
         call read_doubles(RTI%logXpXq,'-',RTI%ncluster,RTI%ncluster)
         call read_doubles(RTI%maxlogweight,'-',RTI%ncluster)
+        call read_doubles(RTI%logXpsim,'-',RTI%ncluster,settings%nsim)
   
         call read_doubles(RTI%logZp_dead,'-',RTI%ncluster_dead)
         call read_doubles(RTI%logZp2_dead,'-',RTI%ncluster_dead)

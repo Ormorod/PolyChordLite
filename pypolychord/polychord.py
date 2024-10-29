@@ -507,6 +507,10 @@ def run(loglikelihood, nDims, **kwargs):
         parameters and one derived:
         paramnames = [("p0", "$p_0$"), ("p1", "$p_1$), ("d0", "$d_0$)]
 
+    nsim: int
+        (Default: 1000)
+        Number of simulated logXp values to use for live point generation.
+
     Returns
     -------
 
@@ -595,6 +599,7 @@ def run(loglikelihood, nDims, **kwargs):
         'grade_dims': [nDims],
         'nlives': {},
         'seed': -1,
+        'nsim': 1000,
         'cube_samples': None,
     }
     default_kwargs['grade_frac'] = ([1.0]*len(default_kwargs['grade_dims'])
@@ -679,6 +684,7 @@ def run(loglikelihood, nDims, **kwargs):
                      kwargs['grade_dims'],
                      kwargs['nlives'],
                      kwargs['seed'],
+                     kwargs['nsim']
                      )
 
     try:

@@ -348,6 +348,7 @@ contains
             loglikes,&
             nlives,&
             seed,&
+            nsim,&
             comm) &
             bind(c,name='polychord_c_interface')
 
@@ -438,6 +439,7 @@ contains
         real(c_double), intent(in), dimension(n_nlives) :: loglikes
         integer(c_int), intent(in), dimension(n_nlives) :: nlives
         integer(c_int), intent(in), value               :: seed
+        integer(c_int), intent(in), value               :: nsim
 
         type(program_settings)    :: settings  ! The program settings 
 
@@ -481,6 +483,7 @@ contains
         settings%file_root           = convert_c_string(file_root) 
 
         settings%seed                = seed
+        settings%nsim                = nsim
 
         allocate(settings%grade_frac(nGrade),settings%grade_dims(nGrade))
         settings%grade_frac = grade_frac

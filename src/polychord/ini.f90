@@ -91,6 +91,7 @@ contains
 
         settings%nDims         = size(params)
         settings%nDerived      = size(derived_params)
+        settings%nsim          = get_integer(file_name,'nsims',1000)
 
     end subroutine read_params
 
