@@ -324,14 +324,6 @@ module run_time_module
             end if
         end do
 
-        do q=1, RTI%ncluster
-            if (q/=p) then
-                print *, "<XpXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
-            end if
-            ! print *, "mean     ", RTI%logXp(q)
-            ! print *, "simulated", RTI%logXpsim(q)
-        end do
-
     end function update_evidence
 
     !> This function takes the evidence info in cluster p and splits it into
