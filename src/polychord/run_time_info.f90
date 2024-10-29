@@ -307,7 +307,7 @@ module run_time_module
 
         do q=1, RTI%ncluster
             if (q/=p) then
-                print *, "<X_pXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
+                print *, "<XpXq> ", exp(RTI%logXpXq(p, q) - RTI%logXp(p) - RTI%logXp(q))-1
             end if
             ! print *, "mean     ", RTI%logXp(q)
             ! print *, "simulated", RTI%logXpsim(q)
