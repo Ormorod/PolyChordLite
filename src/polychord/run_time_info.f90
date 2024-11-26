@@ -276,7 +276,7 @@ module run_time_module
         RTI%logXp(p)  = RTI%logXp(p) + lognp - lognp1
         ! TODO draw t from power law distribution
         do q=1,size(RTI%logXpsim,2)
-            logt = random_power_law(RTI%nlive(1))
+            logt = random_power_law(RTI%nlive(p))
             RTI%logXpsim(p,q) = RTI%logXpsim(p,q) + logt
         end do
 
